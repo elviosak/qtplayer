@@ -2,6 +2,8 @@
 
 Simple libmpv wrapper. Built to make it easier to play multiple videos/podcasts from different providers in a row.
 
+Based on https://github.com/mpv-player/mpv-examples/tree/master/libmpv/qt_opengl
+
 
 - Drag link or file to program window to add to playlist.
 - Playlist is visible when windowed, hidden on Fullscreen.
