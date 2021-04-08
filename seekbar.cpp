@@ -12,12 +12,21 @@ SeekBar::SeekBar(MpvWidget *mpv, QWidget *parent)
 {
     setStyleSheet(
 "#fullbar{"
+"   border-width: 0px;"
+"   margin: 0px;"
+"   padding: 0px;"
 "   background: #ddd;"
 "}"
 "#currentbar{"
+"   border-width: 0px;"
+"   margin: 0px;"
+"   padding: 0px;"
 "   background: #2a4;"
 "}"
 "#seekablebar{"
+"   border-width: 0px;"
+"   margin: 0px;"
+"   padding: 0px;"
 "   background: #369"
 "}");
 
