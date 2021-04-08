@@ -37,17 +37,17 @@ set(PROJECT_SOURCES
         settings.cpp
         settings.h
 )
-set(QTPPLAYER_RES qtplayer.qrc)
+set(QTPLAYER_RES qtplayer.qrc)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(qtplayer
         ${PROJECT_SOURCES}
-        ${QTPPLAYER_RES}
+        ${QTPLAYER_RES}
     )
 else()
     add_executable(qtplayer
         ${PROJECT_SOURCES}
-        ${QTPPLAYER_RES}
+        ${QTPLAYER_RES}
     )
 endif()
 
