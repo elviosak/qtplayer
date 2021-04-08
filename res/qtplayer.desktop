@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Qt Media Player
+StartupWMClass=qtplayer
+TryExec=qtplayer
+Exec=qtplayer %U
+Terminal=false
+Icon=qtplayer
+Type=Application
+Categories=Audio;Video;AudioVideo;Network;
