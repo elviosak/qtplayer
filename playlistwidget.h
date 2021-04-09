@@ -35,11 +35,6 @@ private:
     QToolBar *_btnBar;
 
     void playlistChanged(QVariant playlist);
-
-//protected:
-//    void dragEnterEvent(QDragEnterEvent *e) override;
-//    void dragMoveEvent(QDragMoveEvent *e) override;
-//    void dropEvent(QDropEvent *e) override;
 };
 
 #endif // PLAYLISTWIDGET_H

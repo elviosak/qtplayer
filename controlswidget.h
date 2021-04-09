@@ -6,7 +6,7 @@
 #include <QAction>
 #include <QDoubleSpinBox>
 #include <QComboBox>
-
+#include <QIcon>
 
 class MpvWidget;
 class SeekBar;
@@ -40,6 +40,8 @@ private:
     VolumeBar *_volumeBar;
     QAction *_volumeBtn;
     QAction *_fullScreenAction;
+    QIcon _playIcon;
+    QIcon _pauseIcon;
 
     void updateTimeLabel();
     QString formatTime(int time);

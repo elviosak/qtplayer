@@ -50,6 +50,8 @@ void SeekBar::changeSeekable(double start, double end){
     Seekable seekable;
     double x = _width * start / _maxValue;
     double w = _width * (end - start) / _maxValue;
+    x = qBound<double>(0, x, _width);
+    w = qBound<double>(0, w, _width - x);
     if (_seekableRanges.contains(start)){
         seekable = _seekableRanges[start];
         seekable.end = end;

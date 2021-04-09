@@ -19,6 +19,10 @@ ControlsWidget::ControlsWidget(MpvWidget *mpv, QWidget *parent)
     _currTime = 0;
     _totalTime = 0;
 
+    _playIcon = QIcon(":/play");
+    _pauseIcon = QIcon(":/pause");
+
+
     _speed = _settings->value("speed", 1).toDouble();
     _volume = _settings->value("volume", 70).toInt();
     _option = _settings->value("option", "480p").toString();
@@ -30,12 +34,13 @@ ControlsWidget::ControlsWidget(MpvWidget *mpv, QWidget *parent)
     _seekLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     _seekLabel->setAlignment(Qt::AlignCenter);
 
-    _playBtn = new QAction(QIcon::fromTheme("media-play"), QString());
-    _prevBtn = new QAction(QIcon::fromTheme("media-skip-backward"), QString());
-    _nextBtn = new QAction(QIcon::fromTheme("media-skip-forward"), QString());
+    _playBtn = new QAction(QString());
+    _playBtn->setIcon(_playIcon);
+    _prevBtn = new QAction(QIcon(":/backward"), QString());
+    _nextBtn = new QAction(QIcon(":/forward"), QString());
 
     _volumeBar = new VolumeBar;
-    _volumeBtn = new QAction(QIcon::fromTheme("audio-volume-medium"),
+    _volumeBtn = new QAction(QIcon(":/volume-3"),
                                  QString("%1")
                               .arg(QString::number(_volume)));
 
@@ -51,7 +56,7 @@ ControlsWidget::ControlsWidget(MpvWidget *mpv, QWidget *parent)
     _optionCombo->addItems(QStringList() << "480p" << "720p" << "1080p");
     _optionCombo->setCurrentText(_option);
 
-    _fullScreenAction = new QAction(QIcon::fromTheme("view-fullscreen"), QString());
+    _fullScreenAction = new QAction(QIcon(":/fullscreen"), QString());
 
     addAction(_playBtn);
     addAction(_prevBtn);
@@ -147,22 +152,24 @@ ControlsWidget::ControlsWidget(MpvWidget *mpv, QWidget *parent)
         _volume = volume;
         _volumeBar->setCurrValue(volume);
         if (volume == 0)
-            _volumeBtn->setIcon(QIcon::fromTheme("audio-volume-muted"));
-        else if (volume <= 40)
-            _volumeBtn->setIcon(QIcon::fromTheme("audio-volume-low"));
-        else if (volume <= 80)
-            _volumeBtn->setIcon(QIcon::fromTheme("audio-volume-medium"));
+            _volumeBtn->setIcon(QIcon(":/volume-0"));
+        else if (volume <= 35)
+            _volumeBtn->setIcon(QIcon(":/volume-1"));
+        else if (volume <= 65)
+            _volumeBtn->setIcon(QIcon(":/volume-2"));
+        else if (volume <= 100)
+            _volumeBtn->setIcon(QIcon(":/volume-3"));
         else
-            _volumeBtn->setIcon(QIcon::fromTheme("audio-volume-high"));
+            _volumeBtn->setIcon(QIcon(":/volume-4"));
 
         _volumeBtn->setText(QString("%1").arg(QString::number(volume)));
         _settings->setValue("volume", volume);
     });
     connect(_mpv, &MpvWidget::pauseChanged, this, [=] (bool pause) {
         if(pause)
-            _playBtn->setIcon(QIcon::fromTheme("media-play"));
+            _playBtn->setIcon(_playIcon);
         else
-            _playBtn->setIcon(QIcon::fromTheme("media-pause"));
+            _playBtn->setIcon(_pauseIcon);
     });
 
 

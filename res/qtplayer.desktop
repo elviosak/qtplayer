@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=Qt Media Player
+Name=Qt Player
 StartupWMClass=qtplayer
 TryExec=qtplayer
 Exec=qtplayer %U

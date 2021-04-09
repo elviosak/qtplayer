@@ -1,6 +1,6 @@
-# Qt Media Player
+# Qt Player
 
-Simple libmpv wrapper. Built to make it easier to play multiple videos/podcasts from different providers in a row.
+Simple libmpv wrapper. Built to easily make a playlist with videos/podcasts from different providers and change playback speed.
 
 Based on https://github.com/mpv-player/mpv-examples/tree/master/libmpv/qt_opengl
 

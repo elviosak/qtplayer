@@ -19,7 +19,7 @@ PlaylistWidget::PlaylistWidget(MpvWidget *mpv, QWidget *parent)
 
     _urlLine = new QLineEdit;
 
-    _urlAddBtn = new QPushButton(QIcon::fromTheme("add"),"Add");
+    _urlAddBtn = new QPushButton(QIcon(":/addplaylist"),"Add");
     auto urlBox = new QHBoxLayout;
     urlBox->addWidget(_urlLine);
     urlBox->addWidget(_urlAddBtn);
@@ -27,9 +27,9 @@ PlaylistWidget::PlaylistWidget(MpvWidget *mpv, QWidget *parent)
 
     _btnBar = new QToolBar;
     _btnBar->setOrientation(Qt::Orientation::Vertical);
-    _btnBar->addAction(QIcon::fromTheme("arrow-up"), "Up");
-    _btnBar->addAction(QIcon::fromTheme("arrow-down"), "Down");
-    _btnBar->addAction(QIcon::fromTheme("emptytrash"), "Remove");
+    _btnBar->addAction(QIcon(":/up"), "Up");
+    _btnBar->addAction(QIcon(":/down"), "Down");
+    _btnBar->addAction(QIcon(":/trash"), "Remove");
 
     _model = new QStandardItemModel;
     _model->setColumnCount(3);
@@ -225,29 +225,3 @@ void PlaylistWidget::playlistChanged(QVariant playlist) {
         }
 
     };
-//void PlaylistWidget::dragEnterEvent(QDragEnterEvent *e) {
-//    if (e->mimeData()->hasFormat("text/plain")){
-//        e->acceptProposedAction();
-//    }
-//}
-
-//void PlaylistWidget::dragMoveEvent(QDragMoveEvent *e) {
-//    if (e->mimeData()->hasFormat("text/plain")){
-//        e->acceptProposedAction();
-//    }
-//}
-
-//void PlaylistWidget::dropEvent(QDropEvent *e) {
-//    auto data = e->mimeData();
-//    if (data->hasUrls()) {
-//        for (int i = 0; i < data->urls().count(); ++i) {
-//            QString url = data->urls().at(i).toString();
-//            addUrl(url);
-//        }
-//    }
-//    else if(data->hasText()) {
-//        QString text = data->text();
-//        addUrl(text);
-//    }
-//    e->acceptProposedAction();
-//};

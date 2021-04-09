@@ -1,5 +1,19 @@
 <RCC>
     <qresource prefix="/">
         <file alias="qtplayer">res/qtplayer.svg</file>
+        <file alias="play">res/play.svg</file>
+        <file alias="pause">res/pause.svg</file>
+        <file alias="backward">res/backward.svg</file>
+        <file alias="forward">res/forward.svg</file>
+        <file alias="fullscreen">res/fullscreen.svg</file>
+        <file alias="volume-0">res/volume-0.svg</file>
+        <file alias="volume-1">res/volume-1.svg</file>
+        <file alias="volume-2">res/volume-2.svg</file>
+        <file alias="volume-3">res/volume-3.svg</file>
+        <file alias="volume-4">res/volume-4.svg</file>
+        <file alias="down">res/down.svg</file>
+        <file alias="trash">res/trash.svg</file>
+        <file alias="up">res/up.svg</file>
+        <file alias="addplaylist">res/addplaylist.svg</file>
     </qresource>
 </RCC>

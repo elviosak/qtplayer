@@ -17,8 +17,6 @@ MainWindow::MainWindow(QWidget *parent)
     setAcceptDrops(true);
     _playlistArea = _settings->value("playlistArea", Qt::DockWidgetArea::TopDockWidgetArea).value<Qt::DockWidgetArea>();
     _controlsArea = _settings->value("controlsArea", Qt::ToolBarArea::BottomToolBarArea).value<Qt::ToolBarArea>();
-//    connect(_playlist,&PlaylistWidget::dockLocationChanged, this, &MainWindow::dockLocationChanged);
-//    connect(_controls,&ControlsWidget:: this, &MainWindow::dockLocationChanged);
 
     setWindowIcon(QIcon(":/qtplayer"));
     _spaceShortcut = new QShortcut(QKeySequence(Qt::Key_Space), this);
@@ -29,7 +27,6 @@ MainWindow::MainWindow(QWidget *parent)
     _mpv = new MpvWidget(this);
     _playlist = new PlaylistWidget(_mpv);
     _controls = new ControlsWidget(_mpv);
-    //_controls->setAllowedAreas(Qt::ToolBarArea::BottomToolBarArea | Qt::ToolBarArea::TopToolBarArea);
     setCentralWidget(_mpv);
     setDockOptions(dockOptions() & ~AllowTabbedDocks);
 
@@ -108,50 +105,17 @@ void MainWindow::dragMoveEvent(QDragMoveEvent *e) {
 
 void MainWindow::dropEvent(QDropEvent *e) {
     auto data = e->mimeData();
-    if (data->hasUrls() && data->urls().count()> 1){
+    if (data->hasUrls()){
         for (int i = 0; i < data->urls().count(); ++i) {
             QString url = data->urls().at(i).toString();
             _playlist->addUrl(url);
         }
         e->accept();
-        return;
     }
-    QString url;
-
-    // TITLE IS CURRENTLY NOT USED
-    QString title;
-    if (data->hasHtml()){
-        QXmlStreamReader xml(data->html());
-        while(xml.readNextStartElement()){
-            title = xml.readElementText();
-            auto tag = xml.name().toString();
-            auto attrs = xml.attributes();
-            for (auto i = attrs.begin(); i != attrs.end(); ++i){
-                auto name = (*i).name().toString();
-                auto val = (*i).value().toString();
-                if (tag == "a" && name == "href")
-                    url = val;
-                else if (title.isEmpty() && tag == "a" && name == "title")
-                    title = val;
-            }
-        }
+    else if (data->hasText() && !data->text().trimmed().isEmpty()) {
+        _playlist->addUrl(data->text().trimmed());
+        e->accept();
     }
-    if (url.isEmpty() || title.isEmpty()) {
-        if (data->hasUrls()) {
-            QString text = data->urls().at(0).toString();
-            if (url.isEmpty())
-                url = text;
-            if (title.isEmpty())
-                title = text;
-        }
-        if (data->hasText()) {
-            QString text = data->text().trimmed();
-            if (url.isEmpty())
-                url = text;
-            if (title.isEmpty())
-                title = text;
-        }
-    }
-    _playlist->addUrl(url);
-    e->accept();
+    else
+        e->ignore();
 };
