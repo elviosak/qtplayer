@@ -2,7 +2,7 @@
 mkdir -p build
 rm -r build/*
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=./appdir/usr .. && make && make install
+cmake -DCMAKE_INSTALL_PREFIX=/usr .. && make && make install DESTDIR=appdir
 cp ../res/qtplayer.desktop appdir/
 cp ../res/qtplayer.svg appdir/
 wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage

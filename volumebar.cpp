@@ -32,7 +32,7 @@ VolumeBar::VolumeBar(QWidget *parent)
 "}"
 "#barline{"
 "   background: transparent;"
-"   border-width: 0px;"
+"   border: 1px transparent #ddd;"
 "   margin: 0px;"
 "   padding: 0px;"
 "   border-right-width: 1px;"
@@ -52,7 +52,6 @@ VolumeBar::VolumeBar(QWidget *parent)
     _currentBar->setFixedSize(_width + 10, 12);
     _currentBar->move(0, 0);
     auto line = new QFrame(this);
-    line->setMouseTracking(true);
     line->setFrameShape(Shape::Box);
     line->setObjectName("barline");
     line->setFixedSize(51, 12);

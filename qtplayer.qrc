@@ -10,7 +10,6 @@
         <file alias="volume-1">res/volume-1.svg</file>
         <file alias="volume-2">res/volume-2.svg</file>
         <file alias="volume-3">res/volume-3.svg</file>
-        <file alias="volume-4">res/volume-4.svg</file>
         <file alias="down">res/down.svg</file>
         <file alias="trash">res/trash.svg</file>
         <file alias="up">res/up.svg</file>

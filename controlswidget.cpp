@@ -153,14 +153,12 @@ ControlsWidget::ControlsWidget(MpvWidget *mpv, QWidget *parent)
         _volumeBar->setCurrValue(volume);
         if (volume == 0)
             _volumeBtn->setIcon(QIcon(":/volume-0"));
-        else if (volume <= 35)
+        else if (volume <= 40)
             _volumeBtn->setIcon(QIcon(":/volume-1"));
-        else if (volume <= 65)
+        else if (volume <= 80)
             _volumeBtn->setIcon(QIcon(":/volume-2"));
-        else if (volume <= 100)
-            _volumeBtn->setIcon(QIcon(":/volume-3"));
         else
-            _volumeBtn->setIcon(QIcon(":/volume-4"));
+            _volumeBtn->setIcon(QIcon(":/volume-3"));
 
         _volumeBtn->setText(QString("%1").arg(QString::number(volume)));
         _settings->setValue("volume", volume);
