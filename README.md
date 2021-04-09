@@ -16,7 +16,7 @@ Based on https://github.com/mpv-player/mpv-examples/tree/master/libmpv/qt_opengl
 
 
 ### Screenshot:
-![Image alt text](screenshot/screenshot.png)
+![Image alt text](screenshot/screenshot2.png)
 
 ### Dependencies:
 - `mpv` (with `youtube-dl` for online media)
