@@ -51,6 +51,7 @@ ControlsWidget::ControlsWidget(MpvWidget *mpv, QWidget *parent)
     _speedSpin->setSuffix("x");
     _speedSpin->setValue(_speed);
     _speedSpin->setSingleStep(0.1);
+    _speedSpin->setFocusPolicy(Qt::NoFocus);
 
     _optionCombo = new QComboBox;
     _optionCombo->addItems(QStringList() << "480p" << "720p" << "1080p");
@@ -161,6 +162,8 @@ ControlsWidget::ControlsWidget(MpvWidget *mpv, QWidget *parent)
             _volumeBtn->setIcon(QIcon(":/volume-3"));
 
         _volumeBtn->setText(QString("%1").arg(QString::number(volume)));
+        _volumeBtn->setToolTip(QString("%1%").arg(QString::number(volume)));
+
         _settings->setValue("volume", volume);
     });
     connect(_mpv, &MpvWidget::pauseChanged, this, [=] (bool pause) {

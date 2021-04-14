@@ -4,8 +4,7 @@
 #include <QFrame>
 #include <QMap>
 
-struct Seekable {
-    QFrame * bar;
+struct Range {
     double start;
     double end;
 };
@@ -24,26 +23,20 @@ private:
     MpvWidget *_mpv;
     bool _pressed = false;
 
-    int _width = 1;
     int _maxValue = 1;
     int _currValue = 0;
-    int _currWidth = 0;
 
-    QFrame *_currentBar;
-    QMap<double, Seekable> _seekableRanges;
+    QList<Range> _seekableRanges;
 
-    void resizeBar();
-
-    void changeSeekable(double start, double end);
     int pointToValue(QPoint p);
     QString formatTime(int time);
 
 protected:
+    void paintEvent(QPaintEvent *e) override;
     void wheelEvent(QWheelEvent *e) override;
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;
     void mouseReleaseEvent(QMouseEvent *e) override;
-    void resizeEvent(QResizeEvent *e) override;
 
 signals:
     void valueChanged(int value);

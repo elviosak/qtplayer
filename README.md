@@ -10,7 +10,7 @@ Based on https://github.com/mpv-player/mpv-examples/tree/master/libmpv/qt_opengl
 - Control bar is always visible.
 - Changing video resolution restarts the video and only works for Youtube videos.
 - `Space` to toggle Play/Pause.
-- `Esc` exit fullscreen.
+- `Esc` exit Fullscreen.
 - `Double click` on video to toggle Fullscreen.
 - `Click` on video to toggle Play/Pause.
 
@@ -19,8 +19,11 @@ Based on https://github.com/mpv-player/mpv-examples/tree/master/libmpv/qt_opengl
 ![Image alt text](screenshot/screenshot2.png)
 
 ### Dependencies:
-- `mpv` (with `youtube-dl` for online media)
-- `qt5`
+#### Ubuntu
+`sudo apt install git cmake g++ pkg-config qtbase5-dev libqt5widgets5 libmpv-dev`
+
+#### Arch
+`sudo pacman -S git base-devel cmake pkgconf qt5-base mpv youtube-dl`
 
 ### Install:
 ```

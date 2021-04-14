@@ -1,15 +1,14 @@
 #ifndef VOLUMEBAR_H
 #define VOLUMEBAR_H
 
-#include <QFrame>
+#include <QWidget>
 
-class VolumeBar: public QFrame
+class VolumeBar: public QWidget
 {
     Q_OBJECT
 public:
     VolumeBar(QWidget *parent = nullptr);
 
-    void setMaxValue(int max);
     void setCurrValue(int curr);
 
 private:
@@ -17,18 +16,14 @@ private:
     int _width;
     int _maxValue;
     int _currValue;
-    int _currWidth;
 
-    QWidget *_currentBar;
-
-    void resizeBar();
     int pointToValue(QPoint p);
 protected:
+    void paintEvent(QPaintEvent *) override;
     void wheelEvent(QWheelEvent *e) override;
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;
     void mouseReleaseEvent(QMouseEvent *e) override;
-    void resizeEvent(QResizeEvent *e) override;
 
 signals:
     void valueChanged(int value);

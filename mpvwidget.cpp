@@ -61,16 +61,15 @@ MpvWidget::~MpvWidget()
 void MpvWidget::setOption(QString option)
 {
     if (option =="480p")
-        mpv_set_option_string(mpv, "ytdl-format", "bestvideo[height<=?480]+bestaudio/best");
+        mpv_set_option_string(mpv, "ytdl-format", "best[height<=?480]/bestvideo[height<=?480]+bestaudio");
     if (option =="720p")
-        mpv_set_option_string(mpv, "ytdl-format", "bestvideo[height<=?720]+bestaudio/best");
+        mpv_set_option_string(mpv, "ytdl-format", "best[height<=?720]/bestvideo[height<=?720]+bestaudio");
     if (option =="1080p")
-        mpv_set_option_string(mpv, "ytdl-format", "bestvideo[height<=?1080]+bestaudio/best");
+        mpv_set_option_string(mpv, "ytdl-format", "best[height<=?1080]/bestvideo[height<=?1080]+bestaudio");
 
-    if (getProperty("playlist-count").toInt() > 0) {     
-        auto playlist = getProperty("playlist").value<QVariantList>();
-        auto current = playlist.at(getProperty("current-pos").toInt()).value<QMap<QString, QVariant>>();
-        command(QStringList() << "playlist-play-index" << "current");
+    if (getProperty("playlist-count").toInt() > 0) {
+        auto current = getProperty("current-pos").toInt();
+        command(QStringList() << "playlist-play-index" << QString::number(current));
     }
 }
 void MpvWidget::mousePressEvent(QMouseEvent *e)
