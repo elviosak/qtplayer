@@ -23,7 +23,7 @@ Based on https://github.com/mpv-player/mpv-examples/tree/master/libmpv/qt_opengl
 `sudo apt install git cmake g++ pkg-config qtbase5-dev libqt5widgets5 libmpv-dev`
 
 #### Arch
-`sudo pacman -S git base-devel cmake pkgconf qt5-base mpv youtube-dl`
+`sudo pacman -S git base-devel cmake pkgconf qt5-base qt5-svg mpv youtube-dl`
 
 ### Install:
 ```
