@@ -83,10 +83,7 @@ QString SeekBar::formatTime(int time){
 
 void SeekBar::wheelEvent(QWheelEvent *e) {
     int delta = e->angleDelta().y();
-    if(delta > 0)
-        emit valueRelative(10);
-    else
-        emit valueRelative(-10);
+    emit valueStep(delta > 0);
 }
 void SeekBar::mousePressEvent(QMouseEvent *e) {
     if(e->button() == Qt::MouseButton::LeftButton){

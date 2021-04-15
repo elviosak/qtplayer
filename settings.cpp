@@ -3,7 +3,7 @@
 Q_GLOBAL_STATIC(Settings, settings)
 
 Settings::Settings()
-    : QSettings("qtplayer")
+    : QSettings("qtplayer", "qtplayer")
 {}
 
 Settings *Settings::instance()

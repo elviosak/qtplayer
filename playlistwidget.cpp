@@ -2,9 +2,11 @@
 #include "mpvwidget.h"
 
 #include <QMouseEvent>
+#include <QWheelEvent>
 #include <QMimeData>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QDebug>
 
 PlaylistWidget::PlaylistWidget(MpvWidget *mpv, QWidget *parent)
     : QDockWidget(parent)
@@ -143,14 +145,32 @@ PlaylistWidget::PlaylistWidget(MpvWidget *mpv, QWidget *parent)
             durationItem->setText(duration);
         }
     });
+    connect(_mpv, &MpvWidget::playlistPosChanged, this, [=] (int pos) {
+        QFont fnormal = _table->font();
+        fnormal.setBold(false);
+        QFont fbold = _table->font();
+        fbold.setBold(true);
+        for (int i = 0; i < _model->rowCount(); ++i){
+            if (i == pos){
+                _model->item(i, 0)->setFont(fbold);
+                _model->item(i, 1)->setFont(fbold);
+            }
+            else {
+                _model->item(i, 0)->setFont(fnormal);
+                _model->item(i, 1)->setFont(fnormal);
+            }
+
+        }
+    });
 
 }
 
 void PlaylistWidget::addUrl(QString url){
-    if (url.isEmpty())
+    QString newUrl = url.trimmed();
+    if (newUrl.isEmpty())
         return;
 
-    _mpv->command(QStringList() << "loadfile" << url << "append-play");
+    _mpv->command(QStringList() << "loadfile" << newUrl << "append-play");
     if (_mpv->getProperty("eof-reached").toBool()
             || _mpv->getProperty("idle-active").toBool())
         _mpv->setProperty("pause", false);
@@ -170,58 +190,46 @@ QString PlaylistWidget::formatTime(int time){
 
 
 void PlaylistWidget::playlistChanged(QVariant playlist) {
-        QModelIndex index = _table->currentIndex();
-        QFont fnormal = _table->font();
-        fnormal.setBold(false);
-        QFont fbold = _table->font();
-        fbold.setBold(true);
-        auto list = playlist.value<QVariantList>();
-        int i = 0;
-        for (; i < list.count(); ++i) {
-            auto newItem = list.at(i).value<QMap<QString, QVariant>>();
-            QString filename = newItem["filename"].toString();
-            bool current = newItem["current"].toBool();
-            QList<QStandardItem*> itemRow, find;
-            find = _model->findItems(filename, Qt::MatchExactly, 2);
-            if (find.count() > 0){
-                if (find.first()->row() == i) {
-                    _model->item(i, 0)->setFont(current ? fbold : fnormal);
-                    _model->item(i, 1)->setFont(current ? fbold : fnormal);
-                    continue;
-                }
-                itemRow = _model->takeRow(find.first()->row());
-            }
-            else {
-                auto titleItem = new QStandardItem(filename);
-                auto durationItem = new QStandardItem(QString());
-                auto filenameItem = new QStandardItem(filename);
-                durationItem->setTextAlignment(Qt::AlignCenter);
-                itemRow.append(titleItem);
-                itemRow.append(durationItem);
-                itemRow.append(filenameItem);
-            }
-            _model->insertRow(i, itemRow);
-            _model->item(i, 0)->setFont(current ? fbold : fnormal);
-            _model->item(i, 1)->setFont(current ? fbold : fnormal);
+    QModelIndex index = _table->currentIndex();
 
+    auto list = playlist.value<QVariantList>();
+    int i = 0;
+    for (; i < list.count(); ++i) {
+        auto newItem = list.at(i).value<QMap<QString, QVariant>>();
+        QString filename = newItem["filename"].toString();
+        QList<QStandardItem*> itemRow, find;
 
+        find = _model->findItems(filename, Qt::MatchExactly, 2);
+        if (find.count() > 0){
+            itemRow = _model->takeRow(find.first()->row());
         }
-        for (; i < _model->rowCount(); ++i) {
-            auto rowItems = _model->takeRow(i);
-            foreach (auto item, rowItems) {
-                item->~QStandardItem();
-            }
+        else {
+            auto titleItem = new QStandardItem(filename);
+            auto durationItem = new QStandardItem(QString());
+            auto filenameItem = new QStandardItem(filename);
+            durationItem->setTextAlignment(Qt::AlignCenter);
+            itemRow.append(titleItem);
+            itemRow.append(durationItem);
+            itemRow.append(filenameItem);
         }
-        if (index.isValid()){
-            if (_lastAction == "up")
-                _table->setCurrentIndex(index.siblingAtRow(index.row() - 1));
-            else if (_lastAction == "down")
-                _table->setCurrentIndex(index.siblingAtRow(index.row() + 1));
-            else if (_lastAction == "remove") {
-                int newRow = qMin(index.row(), _model->rowCount()-1);
-                _table->setCurrentIndex(index.siblingAtRow(newRow));
-            }
-            _lastAction = QString();
+        _model->insertRow(i, itemRow);
+    }
+    for (; i < _model->rowCount(); ++i) {
+        auto rowItems = _model->takeRow(i);
+        foreach (auto item, rowItems) {
+            item->~QStandardItem();
         }
+    }
+    if (index.isValid()){
+        if (_lastAction == "up")
+            _table->setCurrentIndex(index.siblingAtRow(index.row() - 1));
+        else if (_lastAction == "down")
+            _table->setCurrentIndex(index.siblingAtRow(index.row() + 1));
+        else if (_lastAction == "remove") {
+            int newRow = qMin(index.row(), _model->rowCount()-1);
+            _table->setCurrentIndex(index.siblingAtRow(newRow));
+        }
+    }
+    _lastAction = QString();
 
-    };
+};

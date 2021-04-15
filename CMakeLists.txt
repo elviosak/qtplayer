@@ -38,6 +38,8 @@ set(PROJECT_SOURCES
         volumebar.h
         settings.cpp
         settings.h
+        configdialog.cpp
+        configdialog.h
 )
 set(QTPLAYER_RES qtplayer.qrc)
 

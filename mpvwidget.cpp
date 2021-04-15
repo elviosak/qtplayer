@@ -44,7 +44,7 @@ MpvWidget::MpvWidget(QWidget *parent, Qt::WindowFlags f)
     mpv_observe_property(mpv, 0, "media-title", MPV_FORMAT_STRING);
     mpv_observe_property(mpv, 0, "eof-reached", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "volume", MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "playlist-pos", MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "playlist-playing-pos", MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "playlist-count", MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "demuxer-cache-state", MPV_FORMAT_NODE);
 
@@ -58,6 +58,12 @@ MpvWidget::~MpvWidget()
         mpv_render_context_free(mpv_gl);
     mpv_terminate_destroy(mpv);
 }
+
+void MpvWidget::wheelEvent(QWheelEvent *e) {
+    int delta = e->angleDelta().y();
+    emit valueStep(delta > 0);
+}
+
 void MpvWidget::setOption(QString option)
 {
     if (option =="480p")
@@ -176,7 +182,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
             emit volumeChanged(volume);
         }
     }
-    else if (strcmp(prop->name, "playlist-pos") == 0) {
+    else if (strcmp(prop->name, "playlist-playing-pos") == 0) {
         if (prop->format == MPV_FORMAT_INT64) {
             int playlistPos = *(int *)prop->data;
             emit playlistPosChanged(playlistPos);

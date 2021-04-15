@@ -22,7 +22,12 @@ public:
 private:
     double _speed;
     int _volume;
+
     QString _option;
+    int _seekStep;
+    int _volumeStep;
+    QString _wheelAction;
+//    bool _fetchInfo;
 
     int _mutedVolume;
     int _currTime;
@@ -32,24 +37,28 @@ private:
     MpvWidget *_mpv;
     SeekBar *_seekBar;
     QLabel *_seekLabel;
-    QAction *_playBtn;
-    QAction *_prevBtn;
-    QAction *_nextBtn;
+    QAction *_playAction;
+    QAction *_prevAction;
+    QAction *_nextAction;
     QDoubleSpinBox *_speedSpin;
     QComboBox *_optionCombo;
     VolumeBar *_volumeBar;
-    QAction *_volumeBtn;
+    QAction *_volumeAction;
+    QAction * _configAction;
     QAction *_fullScreenAction;
     QIcon _playIcon;
     QIcon _pauseIcon;
 
     void updateTimeLabel();
     QString formatTime(int time);
-
+    void settingChanged(QString key, QVariant val);
+    void onVolumeStep(bool increase);
+    void onSeekStep(bool increase);
 protected:
     bool event(QEvent *e) override;
 
 signals:
+
     void toggleFullScreen();
     void winIdChanged();
 };

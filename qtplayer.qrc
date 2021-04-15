@@ -14,5 +14,6 @@
         <file alias="trash">res/trash.svg</file>
         <file alias="up">res/up.svg</file>
         <file alias="addplaylist">res/addplaylist.svg</file>
+        <file alias="settings">res/settings.svg</file>
     </qresource>
 </RCC>

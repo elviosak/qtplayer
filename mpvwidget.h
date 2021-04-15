@@ -33,8 +33,10 @@ signals:
     void demuxerStateChanged(QVariant value);
     void clicked();
     void doubleClicked();
+    void valueStep(bool increase);
 
 protected:
+    void wheelEvent(QWheelEvent *e) override;
     void mouseDoubleClickEvent(QMouseEvent *e) override;
     void mousePressEvent(QMouseEvent *e) override;
     void initializeGL() override;

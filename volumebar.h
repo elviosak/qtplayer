@@ -16,7 +16,9 @@ private:
     int _width;
     int _maxValue;
     int _currValue;
+    QLinearGradient _gradient;
 
+    void createGradient();
     int pointToValue(QPoint p);
 protected:
     void paintEvent(QPaintEvent *) override;
@@ -27,7 +29,7 @@ protected:
 
 signals:
     void valueChanged(int value);
-    void valueRelative(int value);
+    void valueStep(bool increase);
 };
 
 #endif // VOLUMEBAR_H

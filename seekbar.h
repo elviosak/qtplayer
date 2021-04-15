@@ -40,7 +40,7 @@ protected:
 
 signals:
     void valueChanged(int value);
-    void valueRelative(int value);
+    void valueStep(bool increase);
 };
 
 #endif // SEEKBAR_H

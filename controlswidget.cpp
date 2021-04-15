@@ -3,6 +3,7 @@
 #include "seekbar.h"
 #include "volumebar.h"
 #include "settings.h"
+#include "configdialog.h"
 
 #include <QEvent>
 
@@ -15,6 +16,11 @@ ControlsWidget::ControlsWidget(MpvWidget *mpv, QWidget *parent)
     setFloatable(true);
     setMovable(true);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
+
+    _seekStep = _settings->value("seekStep", 20).toInt();
+    _volumeStep = _settings->value("volumeStep", 5).toInt();
+    _wheelAction = _settings->value("wheelAction", "Seek").toString();
+    //_fetchInfo = _settings->value( "fetchInfo", false).toBool();
 
     _currTime = 0;
     _totalTime = 0;
@@ -34,13 +40,13 @@ ControlsWidget::ControlsWidget(MpvWidget *mpv, QWidget *parent)
     _seekLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     _seekLabel->setAlignment(Qt::AlignCenter);
 
-    _playBtn = new QAction(QString());
-    _playBtn->setIcon(_playIcon);
-    _prevBtn = new QAction(QIcon(":/backward"), QString());
-    _nextBtn = new QAction(QIcon(":/forward"), QString());
+    _playAction = new QAction(QString());
+    _playAction->setIcon(_playIcon);
+    _prevAction = new QAction(QIcon(":/backward"), QString());
+    _nextAction = new QAction(QIcon(":/forward"), QString());
 
     _volumeBar = new VolumeBar;
-    _volumeBtn = new QAction(QIcon(":/volume-3"),
+    _volumeAction = new QAction(QIcon(":/volume-3"),
                                  QString("%1")
                               .arg(QString::number(_volume)));
 
@@ -57,11 +63,12 @@ ControlsWidget::ControlsWidget(MpvWidget *mpv, QWidget *parent)
     _optionCombo->addItems(QStringList() << "480p" << "720p" << "1080p");
     _optionCombo->setCurrentText(_option);
 
+    _configAction = new QAction(QIcon(":/settings"), QString());
     _fullScreenAction = new QAction(QIcon(":/fullscreen"), QString());
 
-    addAction(_playBtn);
-    addAction(_prevBtn);
-    addAction(_nextBtn);
+    addAction(_playAction);
+    addAction(_prevAction);
+    addAction(_nextAction);
 
     addSeparator();
     addWidget(_speedSpin);
@@ -73,35 +80,31 @@ ControlsWidget::ControlsWidget(MpvWidget *mpv, QWidget *parent)
     addWidget(_seekLabel);
 
     addSeparator();
-    addAction(_volumeBtn);
+    addAction(_volumeAction);
     addWidget(_volumeBar);
 
     addSeparator();
-    addAction(_fullScreenAction);
+    addAction(_configAction);
     addSeparator();
+    addAction(_fullScreenAction);
 
 
     // CONTROLS
     connect(_seekBar, &SeekBar::valueChanged, this, [=] (int value) {
         _mpv->setProperty("time-pos", value);
     });
-    connect(_seekBar, &SeekBar::valueRelative, this, [=] (int value) {
-        int timePos = _mpv->getProperty("time-pos").toInt() + value;
-        int lastPos = qMax(0, _mpv->getProperty("duration").toInt() - 1);
-        int newValue = qBound(0, timePos, lastPos);
-        _mpv->setProperty("time-pos", newValue);
-    });
-    connect(_playBtn, &QAction::triggered, this, [=] {
+    connect(_seekBar, &SeekBar::valueStep, this, &ControlsWidget::onSeekStep);
+    connect(_playAction, &QAction::triggered, this, [=] {
         bool pause = _mpv->getProperty("pause").toBool();
         _mpv->setProperty("pause", !pause);
     });
-    connect(_prevBtn, &QAction::triggered, this, [=] {
+    connect(_prevAction, &QAction::triggered, this, [=] {
         _mpv->command(QVariantList() << "playlist-prev");
     });
-    connect(_nextBtn, &QAction::triggered, this, [=] {
+    connect(_nextAction, &QAction::triggered, this, [=] {
         _mpv->command(QVariantList() << "playlist-next");
     });
-    connect(_volumeBtn, &QAction::triggered, this, [=] {
+    connect(_volumeAction, &QAction::triggered, this, [=] {
         int vol = _mpv->getProperty("volume").toInt();
         if (vol == 0){
             int newValue = (_mutedVolume < 10) ? 10 : _mutedVolume;
@@ -115,10 +118,7 @@ ControlsWidget::ControlsWidget(MpvWidget *mpv, QWidget *parent)
     connect(_volumeBar, &VolumeBar::valueChanged, this, [=] (int value) {
         _mpv->setProperty("volume", value);
     });
-    connect(_volumeBar, &VolumeBar::valueRelative, this, [=] (int value) {
-        int newValue = qBound(0, _volume + value , 150);
-        _mpv->setProperty("volume", newValue);
-    });
+    connect(_volumeBar, &VolumeBar::valueStep, this, &ControlsWidget::onVolumeStep);
 
     connect(_speedSpin,
             QOverload<double>::of(&QDoubleSpinBox::valueChanged),
@@ -130,10 +130,23 @@ ControlsWidget::ControlsWidget(MpvWidget *mpv, QWidget *parent)
         _mpv->setOption(text);
         _settings->setValue("option", _option);
     });
+    connect(_configAction, &QAction::triggered, this, [=] {
+        auto config = new ConfigDialog(this);
+        connect(config, &ConfigDialog::settingChanged, this, &ControlsWidget::settingChanged);
+        config->show();
+    });
     connect(_fullScreenAction, &QAction::triggered, this, [=] {
         emit toggleFullScreen();
     });
+
+
     // MPV LISTENERS
+    connect(_mpv, &MpvWidget::valueStep, this, [=] (bool increase){
+        if (_wheelAction == "Seek")
+            onSeekStep(increase);
+        else if (_wheelAction == "Volume")
+            onVolumeStep(increase);
+    });
     connect(_mpv, &MpvWidget::positionChanged, this, [=] (int value) {
         _seekBar->setCurrValue(value);
         _currTime = value;
@@ -153,24 +166,24 @@ ControlsWidget::ControlsWidget(MpvWidget *mpv, QWidget *parent)
         _volume = volume;
         _volumeBar->setCurrValue(volume);
         if (volume == 0)
-            _volumeBtn->setIcon(QIcon(":/volume-0"));
+            _volumeAction->setIcon(QIcon(":/volume-0"));
         else if (volume <= 40)
-            _volumeBtn->setIcon(QIcon(":/volume-1"));
+            _volumeAction->setIcon(QIcon(":/volume-1"));
         else if (volume <= 80)
-            _volumeBtn->setIcon(QIcon(":/volume-2"));
+            _volumeAction->setIcon(QIcon(":/volume-2"));
         else
-            _volumeBtn->setIcon(QIcon(":/volume-3"));
+            _volumeAction->setIcon(QIcon(":/volume-3"));
 
-        _volumeBtn->setText(QString("%1").arg(QString::number(volume)));
-        _volumeBtn->setToolTip(QString("%1%").arg(QString::number(volume)));
+        _volumeAction->setText(QString("%1").arg(QString::number(volume)));
+        _volumeAction->setToolTip(QString("%1%").arg(QString::number(volume)));
 
         _settings->setValue("volume", volume);
     });
     connect(_mpv, &MpvWidget::pauseChanged, this, [=] (bool pause) {
         if(pause)
-            _playBtn->setIcon(_playIcon);
+            _playAction->setIcon(_playIcon);
         else
-            _playBtn->setIcon(_pauseIcon);
+            _playAction->setIcon(_pauseIcon);
     });
 
 
@@ -178,6 +191,41 @@ ControlsWidget::ControlsWidget(MpvWidget *mpv, QWidget *parent)
     _mpv->setProperty("speed", _speed);
 
 }
+void ControlsWidget::onSeekStep(bool increase)
+{
+    int step = increase ? _seekStep : -_seekStep;
+    int timePos = _mpv->getProperty("time-pos").toInt() + step;
+    int lastPos = qMax(0, _mpv->getProperty("duration").toInt());
+    int newValue = qBound(0, timePos, lastPos - 1);
+    _mpv->setProperty("time-pos", newValue);
+}
+
+void ControlsWidget::onVolumeStep(bool increase)
+{
+    int step = increase ? _volumeStep : -_volumeStep;
+    int newValue = qBound(0, _volume + step , 150);
+    _mpv->setProperty("volume", newValue);
+}
+
+void ControlsWidget::settingChanged(QString key, QVariant val){
+    if (key == "seekStep") {
+        _seekStep = val.toInt();
+        _settings->setValue("seekStep", val);
+    }
+    else if (key == "volumeStep") {
+        _volumeStep = val.toInt();
+        _settings->setValue("volumeStep", val);
+    }
+    else if (key == "wheelAction") {
+        _wheelAction = val.toString();
+        _settings->setValue("wheelAction", val);
+    }
+//    else if (key == "fetchInfo") {
+//        _fetchInfo = val.toBool();
+//        _settings->setValue("fetchInfo", val);
+//    }
+}
+
 
 QString ControlsWidget::formatTime(int time)
 {
