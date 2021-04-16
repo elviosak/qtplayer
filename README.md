@@ -25,7 +25,7 @@ Based on https://github.com/mpv-player/mpv-examples/tree/master/libmpv/qt_opengl
 #### Ubuntu (20.04+)
 `sudo apt install git cmake g++ pkg-config qtbase5-dev libqt5widgets5`
 
-`sudo apt isntall --no-install-recommends libmpv-dev`
+`sudo apt install --no-install-recommends libmpv-dev`
 (this is to avoid pulling `youtube-dl`, install it separately)
 
 `youtube-dl` if usually outdated on repos, and stops working when there are API changes on different websites, check [official installation instructions](https://github.com/ytdl-org/youtube-dl#installation) or use `snap` version.
