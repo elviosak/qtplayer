@@ -22,7 +22,7 @@ MpvWidget::MpvWidget(QWidget *parent, Qt::WindowFlags f)
     : QOpenGLWidget(parent, f)
 {
     QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
+    setMouseTracking(true);
     mpv = mpv_create();
     if (!mpv)
         throw std::runtime_error("could not create mpv context");
@@ -80,6 +80,12 @@ void MpvWidget::setOption(QString option)
         command(QStringList() << "playlist-play-index" << "current");
     }
 }
+
+void MpvWidget::mouseMoveEvent(QMouseEvent */*e*/)
+{
+    emit mouseMoved();
+}
+
 void MpvWidget::mousePressEvent(QMouseEvent *e)
 {
     setFocus();

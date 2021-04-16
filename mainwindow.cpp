@@ -5,6 +5,8 @@
 #include "settings.h"
 
 #include <QMouseEvent>
+#include <QHBoxLayout>
+#include <QToolButton>
 #include <QMimeData>
 #include <QXmlStreamReader>
 
@@ -15,8 +17,12 @@ MainWindow::MainWindow(QWidget *parent)
     , _settings(Settings::instance())
 {
     setAcceptDrops(true);
+    setMouseTracking(true);
     _playlistArea = _settings->value("playlistArea", Qt::DockWidgetArea::TopDockWidgetArea).value<Qt::DockWidgetArea>();
     _controlsArea = _settings->value("controlsArea", Qt::ToolBarArea::BottomToolBarArea).value<Qt::ToolBarArea>();
+
+    _playlistVisible = _settings->value("playlistVisible", true).toBool();
+    _controlsVisible = _settings->value("controlsVisible", true).toBool();
 
     setWindowIcon(QIcon(":/qtplayer"));
     _spaceShortcut = new QShortcut(QKeySequence(Qt::Key_Space), this);
@@ -33,34 +39,88 @@ MainWindow::MainWindow(QWidget *parent)
     addDockWidget(_playlistArea, _playlist);
     addToolBar(_controlsArea, _controls);
 
+    _playlist->setVisible(_playlistVisible);
+    _controls->setVisible(_controlsVisible);
+
+    auto playlistToggle = new QToolButton;
+    playlistToggle->setCheckable(true);
+    playlistToggle->setText("Playlist");
+    playlistToggle->setChecked(_playlistVisible);
+
+    auto controlsToggle = new QToolButton;
+    controlsToggle->setCheckable(true);
+    controlsToggle->setText("Controls");
+    controlsToggle->setChecked(_controlsVisible);
+
+    _hiddenTitle = new QLabel;
+    QFont f = font();
+    f.setPointSize(f.pointSize() * 1.2);
+    _hiddenTitle->setFont(f);
+
+    _hiddenControls = new QWidget(_mpv);
+    _hiddenControls->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    auto lay = new QHBoxLayout(_hiddenControls);
+
+    lay->addWidget(playlistToggle);
+    lay->addWidget(controlsToggle);
+    lay->addWidget(_hiddenTitle);
+    _hiddenControls->move(0,0);
+    _hiddenControls->hide();
+
+
+    _hideTimer = new QTimer(this);
+    _hideTimer->setSingleShot(true);
+
     _mpv->setFocus();
     resize(800, 640);
+
+    connect(playlistToggle, &QToolButton::toggled, this, [=] (bool checked) {
+        _playlist->setVisible(checked);
+        _settings->setValue("playlistVisible", checked);
+    });
+    connect(controlsToggle, &QToolButton::toggled, this, [=] (bool checked) {
+        _controls->setVisible(checked);
+        _settings->setValue("controlsVisible", checked);
+    });
+
+    connect(_mpv, &MpvWidget::mouseMoved, this, [=] {
+        if (!_hiddenControls->isVisible()){
+            _hiddenControls->show();
+        }
+        _hideTimer->start(2000);
+    });
+    connect(_hideTimer, &QTimer::timeout, this, [=] {
+        if(!_hiddenControls->underMouse())
+            _hiddenControls->hide();
+        else
+            _hideTimer->start(2000);
+    });
 
     connect(_mpv, &MpvWidget::doubleClicked, this, [=] {
         if (isFullScreen()){
             showNormal();
-            _playlist->show();
+//            _playlist->show();
         }
         else {
             showFullScreen();
-            _playlist->hide();
+//            _playlist->hide();
         }
     });
     connect(_controls, &ControlsWidget::toggleFullScreen, this, [=] {
         if (isFullScreen()){
             showNormal();
-            _playlist->show();
+            //_playlist->show();
         }
         else {
             showFullScreen();
-            _playlist->hide();
+            //_playlist->hide();
         }
     });
 
     connect(_escShortcut, &QShortcut::activated, this, [=]{
         if (isFullScreen()){
             showNormal();
-            _playlist->show();
+            //_playlist->show();
         }
     });
     connect(_spaceShortcut, &QShortcut::activated, this, [=]{
@@ -70,6 +130,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(_mpv, &MpvWidget::mediaTitleChanged, this, [=](QString title){
         setWindowTitle(title);
+        _hiddenTitle->setText(title);
+        _hiddenControls->hide();
+        _hiddenControls->show();
     });
     connect(_controls, &ControlsWidget::winIdChanged, this, [=]{
         auto area = toolBarArea(_controls);

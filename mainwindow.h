@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QShortcut>
+#include <QLabel>
+#include <QTimer>
 
 class MpvWidget;
 class PlaylistWidget;
@@ -19,10 +21,16 @@ private:
     Qt::DockWidgetArea _playlistArea;
     Qt::ToolBarArea _controlsArea;
 
+    bool _playlistVisible;
+    bool _controlsVisible;
+
     MpvWidget *_mpv;
     Settings *_settings;
     PlaylistWidget *_playlist;
     ControlsWidget *_controls;
+    QWidget *_hiddenControls;
+    QLabel *_hiddenTitle;
+    QTimer *_hideTimer;
     QShortcut * _spaceShortcut;
     QShortcut * _escShortcut;
 

@@ -34,9 +34,11 @@ signals:
     void clicked();
     void doubleClicked();
     void valueStep(bool increase);
+    void mouseMoved();
 
 protected:
     void wheelEvent(QWheelEvent *e) override;
+    void mouseMoveEvent(QMouseEvent *e) override;
     void mouseDoubleClickEvent(QMouseEvent *e) override;
     void mousePressEvent(QMouseEvent *e) override;
     void initializeGL() override;

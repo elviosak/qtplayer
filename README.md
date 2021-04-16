@@ -6,24 +6,32 @@ Based on https://github.com/mpv-player/mpv-examples/tree/master/libmpv/qt_opengl
 
 
 - Drag link or file to program window to add to playlist.
-- Playlist is visible when windowed, hidden on Fullscreen.
-- Control bar is always visible.
-- Changing video resolution restarts the video and only works for Youtube videos.
+- Overlay on video with toggles for Playlist and Controls Bar.
+- Changing video resolution restarts the video and only works if supported by `youtube-dl`.
 - `Space` to toggle Play/Pause.
-- `Esc` exit Fullscreen.
+- `Esc` to exit Fullscreen.
 - `Double click` on video to toggle Fullscreen.
 - `Click` on video to toggle Play/Pause.
+-  `Mouse Wheel` Actions on Seekbar, Volumebar and Video frame (configurable);
 
 
 ### Screenshot:
-![Image alt text](screenshot/screenshot2.png)
+![Image alt text](screenshot/screenshot3.png)
 
 ### Dependencies:
-#### Ubuntu
-`sudo apt install git cmake g++ pkg-config qtbase5-dev libqt5widgets5 libmpv-dev`
+
+
+
+#### Ubuntu (20.04+)
+`sudo apt install git cmake g++ pkg-config qtbase5-dev libqt5widgets5`
+
+`sudo apt isntall --no-install-recommends libmpv-dev`
+(this is to avoid pulling `youtube-dl`, install it separately)
+
+`youtube-dl` if usually outdated on repos, and stops working when there are API changes on different websites, check [official installation instructions](https://github.com/ytdl-org/youtube-dl#installation) or use `snap` version.
 
 #### Arch
-`sudo pacman -S git base-devel cmake pkgconf qt5-base qt5-svg mpv youtube-dl`
+`sudo pacman -S --needed git base-devel cmake pkgconf qt5-base qt5-svg mpv youtube-dl`
 
 ### Install:
 ```
