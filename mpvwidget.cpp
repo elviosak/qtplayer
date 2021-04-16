@@ -4,6 +4,8 @@
 #include <QMetaObject>
 #include <QMouseEvent>
 
+#include <QDebug>
+
 static void wakeup(void *ctx)
 {
     QMetaObject::invokeMethod((MpvWidget*)ctx, "on_mpv_events", Qt::QueuedConnection);
@@ -73,9 +75,9 @@ void MpvWidget::setOption(QString option)
     if (option =="1080p")
         mpv_set_option_string(mpv, "ytdl-format", "best[height<=?1080]/bestvideo[height<=?1080]+bestaudio");
 
-    if (getProperty("playlist-count").toInt() > 0) {
-        auto current = getProperty("current-pos").toInt();
-        command(QStringList() << "playlist-play-index" << QString::number(current));
+    // Only restart when using youtube-dl
+    if (getProperty("playlist-count").toInt() > 0 && getProperty("path") != getProperty("stream-open-filename")) {
+        command(QStringList() << "playlist-play-index" << "current");
     }
 }
 void MpvWidget::mousePressEvent(QMouseEvent *e)
