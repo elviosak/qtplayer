@@ -31,6 +31,7 @@ PlaylistWidget::PlaylistWidget(MpvWidget *mpv, QWidget *parent)
     _btnBar->setOrientation(Qt::Orientation::Vertical);
     _btnBar->addAction(QIcon(":/up"), "Up");
     _btnBar->addAction(QIcon(":/down"), "Down");
+    _btnBar->addSeparator();
     _btnBar->addAction(QIcon(":/trash"), "Remove");
 
     _model = new QStandardItemModel;
@@ -228,6 +229,9 @@ void PlaylistWidget::playlistChanged(QVariant playlist) {
         else if (_lastAction == "remove") {
             int newRow = qMin(index.row(), _model->rowCount()-1);
             _table->setCurrentIndex(index.siblingAtRow(newRow));
+        }
+        else {
+            _table->setCurrentIndex(index);
         }
     }
     _lastAction = QString();

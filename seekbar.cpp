@@ -97,7 +97,11 @@ void SeekBar::mousePressEvent(QMouseEvent *e) {
 }
 void SeekBar::mouseMoveEvent(QMouseEvent *e) {
     int value = pointToValue(e->pos());
+#if (QT_VERSION >= QT_VERSION_CHECK(6,0,0))
+    QToolTip::showText(e->globalPosition().toPoint(), formatTime(value));
+#else
     QToolTip::showText(e->globalPos(), formatTime(value));
+#endif
     if(_pressed) {
         emit valueChanged(value);
         e->accept();

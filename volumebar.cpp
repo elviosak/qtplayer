@@ -72,7 +72,11 @@ void VolumeBar::mousePressEvent(QMouseEvent *e) {
     if(e->button() == Qt::MouseButton::LeftButton){
         _pressed = true;
         int value = pointToValue(e->pos());
-        QToolTip::showText(e->globalPos(), QStringLiteral("%1 %").arg(value));
+#if (QT_VERSION >= QT_VERSION_CHECK(6,0,0))
+    QToolTip::showText(e->globalPosition().toPoint(), QStringLiteral("%1 %").arg(value));
+#else
+    QToolTip::showText(e->globalPos(), QStringLiteral("%1 %").arg(value));
+#endif
         emit valueChanged(value);
         e->accept();
     }
@@ -82,7 +86,11 @@ void VolumeBar::mousePressEvent(QMouseEvent *e) {
 
 void VolumeBar::mouseMoveEvent(QMouseEvent *e) {
     int value = pointToValue(e->pos());
+#if (QT_VERSION >= QT_VERSION_CHECK(6,0,0))
+    QToolTip::showText(e->globalPosition().toPoint(), QStringLiteral("%1 %").arg(value));
+#else
     QToolTip::showText(e->globalPos(), QStringLiteral("%1 %").arg(value));
+#endif
     if(_pressed) {
         emit valueChanged(value);
     }
