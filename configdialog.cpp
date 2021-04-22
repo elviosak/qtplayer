@@ -37,7 +37,7 @@ ConfigDialog::ConfigDialog(QWidget *parent)
     auto controlsAutoHide = new QCheckBox;
     controlsAutoHide->setChecked(_settings->value("controlsAutoHide", false).toBool());
     auto hideDelaySpin = new QSpinBox;
-    hideDelaySpin->setValue(_settings->value("hideTimer", 4).toInt());
+    hideDelaySpin->setValue(_settings->value("hideDelay", 4).toInt());
     hideDelaySpin->setRange(1, 20);
     hideDelaySpin->setSingleStep(1);
     hideDelaySpin->setSuffix(" second(s)");
