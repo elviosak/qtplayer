@@ -58,9 +58,12 @@ protected:
     bool event(QEvent *e) override;
 
 signals:
-
     void toggleFullScreen();
     void winIdChanged();
+    void playlistAutoHideChanged(bool checked);
+    void controlsAutoHideChanged(bool checked);
+    void hideDelayChanged(int timeSec);
+    void geometryChanged(QRect geo);
 };
 
 #endif // CONTROLSWIDGET_H

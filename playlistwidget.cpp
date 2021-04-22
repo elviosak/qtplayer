@@ -14,7 +14,6 @@ PlaylistWidget::PlaylistWidget(MpvWidget *mpv, QWidget *parent)
 {
     setWindowTitle("Playlist");
     setFeatures(QDockWidget::DockWidgetMovable
-                | QDockWidget::DockWidgetFloatable
                 | QDockWidget::DockWidgetVerticalTitleBar);
 //    setAcceptDrops(true);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -237,3 +236,10 @@ void PlaylistWidget::playlistChanged(QVariant playlist) {
     _lastAction = QString();
 
 };
+
+void PlaylistWidget::resizeEvent(QResizeEvent *e)
+{
+    emit geometryChanged(geometry());
+    return QDockWidget::resizeEvent(e);
+
+}

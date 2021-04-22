@@ -4,6 +4,7 @@
 #include "controlswidget.h"
 #include "settings.h"
 
+#include <QCheckBox>
 #include <QMouseEvent>
 #include <QHBoxLayout>
 #include <QToolButton>
@@ -21,8 +22,10 @@ MainWindow::MainWindow(QWidget *parent)
     _playlistArea = _settings->value("playlistArea", Qt::DockWidgetArea::TopDockWidgetArea).value<Qt::DockWidgetArea>();
     _controlsArea = _settings->value("controlsArea", Qt::ToolBarArea::BottomToolBarArea).value<Qt::ToolBarArea>();
 
-    _playlistVisible = _settings->value("playlistVisible", true).toBool();
-    _controlsVisible = _settings->value("controlsVisible", true).toBool();
+    _playlistAutoHide = _settings->value("playlistAutoHide", true).toBool();
+    _controlsAutoHide = _settings->value("controlsAutoHide", false).toBool();
+
+    _hideDelay = _settings->value("hideDelay", 4).toInt() * 1000;
 
     setWindowIcon(QIcon(":/qtplayer"));
     _spaceShortcut = new QShortcut(QKeySequence(Qt::Key_Space), this);
@@ -39,88 +42,95 @@ MainWindow::MainWindow(QWidget *parent)
     addDockWidget(_playlistArea, _playlist);
     addToolBar(_controlsArea, _controls);
 
-    _playlist->setVisible(_playlistVisible);
-    _controls->setVisible(_controlsVisible);
+    _playlist->setVisible(true);
+    _controls->setVisible(true);
+    _controls->setAllowedAreas(Qt::BottomToolBarArea | Qt::TopToolBarArea);
 
-    auto playlistToggle = new QToolButton;
-    playlistToggle->setCheckable(true);
-    playlistToggle->setText("Playlist");
-    playlistToggle->setChecked(_playlistVisible);
-
-    auto controlsToggle = new QToolButton;
-    controlsToggle->setCheckable(true);
-    controlsToggle->setText("Controls");
-    controlsToggle->setChecked(_controlsVisible);
-
-    _hiddenTitle = new QLabel;
+    _overlayTitle = new QLabel;
     QFont f = font();
-    f.setPointSize(f.pointSize() * 1.2);
-    _hiddenTitle->setFont(f);
+    f.setPointSize(f.pointSize() * 1.4);
+    _overlayTitle->setFont(f);
 
-    _hiddenControls = new QWidget(_mpv);
-    _hiddenControls->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    auto lay = new QHBoxLayout(_hiddenControls);
+    _overlay = new QWidget(_mpv);
+    _overlay->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    auto lay = new QHBoxLayout(_overlay);
 
-    lay->addWidget(playlistToggle);
-    lay->addWidget(controlsToggle);
-    lay->addWidget(_hiddenTitle);
-    _hiddenControls->move(0,0);
-    _hiddenControls->hide();
+    lay->addWidget(_overlayTitle);
+    _overlay->move(0,0);
+    _overlay->hide();
 
 
-    _hideTimer = new QTimer(this);
-    _hideTimer->setSingleShot(true);
+    _overlayTimer = new QTimer(this);
+    _overlayTimer->setSingleShot(true);
+
+    _playlistTimer = new QTimer(this);
+    _playlistTimer->setSingleShot(true);
+
+    _controlsTimer = new QTimer(this);
+    _controlsTimer->setSingleShot(true);
 
     _mpv->setFocus();
     resize(800, 640);
 
-    connect(playlistToggle, &QToolButton::toggled, this, [=] (bool checked) {
-        _playlist->setVisible(checked);
-        _settings->setValue("playlistVisible", checked);
+
+    connect(_controls, &ControlsWidget::playlistAutoHideChanged, this, [=] (bool checked) {
+        _playlistAutoHide = checked;
+        if (checked)
+            _playlistTimer->start(_hideDelay);
+        else
+            _playlistTimer->stop();
+
+        _playlist->show();
     });
-    connect(controlsToggle, &QToolButton::toggled, this, [=] (bool checked) {
-        _controls->setVisible(checked);
-        _settings->setValue("controlsVisible", checked);
+    connect(_controls, &ControlsWidget::controlsAutoHideChanged, this, [=] (bool checked) {
+        _controlsAutoHide = checked;
+        if (checked)
+            _controlsTimer->start(_hideDelay);
+        else
+            _controlsTimer->stop();
+
+        _controls->show();
+    });
+    connect(_controls, &ControlsWidget::hideDelayChanged, this, [=] (int timeSec) {
+        _hideDelay = timeSec * 1000;
     });
 
-    connect(_mpv, &MpvWidget::mouseMoved, this, [=] {
-        if (!_hiddenControls->isVisible()){
-            _hiddenControls->show();
-        }
-        _hideTimer->start(2000);
+    connect(_overlayTimer, &QTimer::timeout, this, [=] {
+         _overlay->hide();
     });
-    connect(_hideTimer, &QTimer::timeout, this, [=] {
-        if(!_hiddenControls->underMouse())
-            _hiddenControls->hide();
+    connect(_playlistTimer, &QTimer::timeout, this, [=] {
+        if (_playlist->underMouse())
+            _playlistTimer->start(_hideDelay);
         else
-            _hideTimer->start(2000);
+            _playlist->hide();
+    });
+    connect(_controlsTimer, &QTimer::timeout, this, [=] {
+        if (_controls->underMouse())
+            _controlsTimer->start(_hideDelay);
+        else
+            _controls->hide();
     });
 
     connect(_mpv, &MpvWidget::doubleClicked, this, [=] {
         if (isFullScreen()){
             showNormal();
-//            _playlist->show();
         }
         else {
             showFullScreen();
-//            _playlist->hide();
         }
     });
     connect(_controls, &ControlsWidget::toggleFullScreen, this, [=] {
         if (isFullScreen()){
             showNormal();
-            //_playlist->show();
         }
         else {
             showFullScreen();
-            //_playlist->hide();
         }
     });
 
     connect(_escShortcut, &QShortcut::activated, this, [=]{
         if (isFullScreen()){
             showNormal();
-            //_playlist->show();
         }
     });
     connect(_spaceShortcut, &QShortcut::activated, this, [=]{
@@ -130,9 +140,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(_mpv, &MpvWidget::mediaTitleChanged, this, [=](QString title){
         setWindowTitle(title);
-        _hiddenTitle->setText(title);
-        _hiddenControls->hide();
-        _hiddenControls->show();
+        _overlayTitle->setText(title);
+        _overlay->hide();
+        _overlay->show();
+        _overlayTimer->start(_hideDelay);
     });
     connect(_controls, &ControlsWidget::winIdChanged, this, [=]{
         auto area = toolBarArea(_controls);
@@ -147,8 +158,70 @@ MainWindow::MainWindow(QWidget *parent)
             _settings->setValue("playlistArea", area);
         }
     });
+    connect(_playlist, &PlaylistWidget::geometryChanged, this, [=] (QRect geo) {
+        _playlistRect = geo;
+
+    });
+//    connect(_controls, &ControlsWidget::geometryChanged, this, [=] (QRect geo) {
+//        _controlsRect = geo;
+//    });
+    _playlistRect = _playlist->geometry();
+    //_controlsRect = _controls->geometry();
+
+
+    if (_playlistAutoHide)
+        _playlistTimer->start(_hideDelay);
+    if (_controlsAutoHide)
+        _controlsTimer->start(_hideDelay);
+}
+void MainWindow::resizeEvent(QResizeEvent *e)
+{
+//    if (_controlsArea == Qt::TopToolBarArea) {
+//        _controlsRect.setRight(e->size().width());
+//    }
+//    else if (_controlsArea == Qt::BottomToolBarArea) {
+//        _controlsRect.moveBottom(e->size().height());
+//        _controlsRect.setRight(e->size().width());
+//    }
+
+    if (_playlistArea == Qt::DockWidgetArea::TopDockWidgetArea)
+        _playlistRect.setRight(e->size().width());
+    else if (_playlistArea == Qt::DockWidgetArea::LeftDockWidgetArea)
+        _playlistRect.setBottom(e->size().height());
+    else if (_playlistArea == Qt::DockWidgetArea::RightDockWidgetArea) {
+        _playlistRect.moveRight(e->size().width());
+        _playlistRect.setBottom(e->size().height());
+    }
+    else if (_playlistArea == Qt::DockWidgetArea::BottomDockWidgetArea) {
+        _playlistRect.moveBottom(e->size().height());
+        _playlistRect.setRight(e->size().width());
+    }
 }
 
+void MainWindow::mouseMoveEvent(QMouseEvent *e)
+{
+//    if (_controlsAutoHide
+//                && ((_controls->isHidden() && _controlsRect.contains(e->pos()))
+//                    || (_controls->isVisible() && _controls->underMouse()))){
+//        _controls->show();
+//        _controlsTimer->start(_hideDelay);
+//    }
+    if (_controlsAutoHide && _mpv->underMouse()) {
+        _controls->show();
+        _controlsTimer->start(_hideDelay);
+    }
+
+    if (_playlistAutoHide
+            && ((_playlist->isHidden() && _playlistRect.contains(e->pos()))
+                || (_playlist->isVisible() && _playlist->underMouse()))){
+        _playlist->show();
+        _playlistTimer->start(_hideDelay);
+    }
+    if (_mpv->underMouse()){
+        _overlay->show();
+        _overlayTimer->start(_hideDelay);
+    }
+}
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *e) {
     if (e->mimeData()->hasHtml()

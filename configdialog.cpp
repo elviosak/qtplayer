@@ -32,10 +32,22 @@ ConfigDialog::ConfigDialog(QWidget *parent)
     wheelCombo->setCurrentText(_settings->value("wheelAction", "Seek").toString());
 //    auto fetchCheck = new QCheckBox;
 //    fetchCheck->setChecked(_settings->value("fetchInfo", false).toBool());
+    auto playlistAutoHide = new QCheckBox;
+    playlistAutoHide->setChecked(_settings->value("playlistAutoHide", true).toBool());
+    auto controlsAutoHide = new QCheckBox;
+    controlsAutoHide->setChecked(_settings->value("controlsAutoHide", false).toBool());
+    auto hideDelaySpin = new QSpinBox;
+    hideDelaySpin->setValue(_settings->value("hideTimer", 4).toInt());
+    hideDelaySpin->setRange(1, 20);
+    hideDelaySpin->setSingleStep(1);
+    hideDelaySpin->setSuffix(" second(s)");
 
     form->addRow("Seek Step", seekSpin);
     form->addRow("Volume Step", volumeSpin);
     form->addRow("Wheel Action", wheelCombo);
+    form->addRow("Auto hide Playlist", playlistAutoHide);
+    form->addRow("Auto hide Controls", controlsAutoHide);
+    form->addRow("Hide delay", hideDelaySpin);
 //    form->addRow("Fetch Info", fetchCheck);
 
     auto aboutBtn = new QPushButton("About Qt");
@@ -56,6 +68,16 @@ ConfigDialog::ConfigDialog(QWidget *parent)
     connect(wheelCombo, &QComboBox::currentTextChanged, this, [=] (QString text) {
         emit settingChanged("wheelAction", text);
     });
+    connect(playlistAutoHide, &QCheckBox::toggled, this, [=] (bool checked) {
+        emit settingChanged("playlistAutoHide", checked);
+    });
+    connect(controlsAutoHide, &QCheckBox::toggled, this, [=] (bool checked) {
+        emit settingChanged("controlsAutoHide", checked);
+    });
+    connect(hideDelaySpin, QOverload<int>::of(&QSpinBox::valueChanged), this, [=] (int value) {
+        emit settingChanged("hideDelay", value);
+    });
+
 //    connect(fetchCheck, &QCheckBox::toggled, this, [=] (bool checked) {
 //        emit settingChanged("seekValue", checked);
 //    });

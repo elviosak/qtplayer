@@ -31,7 +31,7 @@ ControlsWidget::ControlsWidget(MpvWidget *mpv, QWidget *parent)
 
     _speed = _settings->value("speed", 1).toDouble();
     _volume = _settings->value("volume", 70).toInt();
-    _option = _settings->value("option", "480p").toString();
+    _option = _settings->value("option", "720p").toString();
     _mpv->setOption(_option);
 
     _seekBar = new SeekBar(_mpv);
@@ -224,6 +224,18 @@ void ControlsWidget::settingChanged(QString key, QVariant val){
 //        _fetchInfo = val.toBool();
 //        _settings->setValue("fetchInfo", val);
 //    }
+    else if (key == "playlistAutoHide") {
+        _settings->setValue("playlistAutoHide", val.toBool());
+        emit playlistAutoHideChanged(val.toBool());
+    }
+    else if (key == "controlsAutoHide") {
+        _settings->setValue("controlsAutoHide", val.toBool());
+        emit controlsAutoHideChanged(val.toBool());
+    }
+    else if (key == "hideDelay") {
+        _settings->setValue("hideDelay", val.toInt());
+        emit hideDelayChanged(val.toInt());
+    }
 }
 
 
@@ -250,6 +262,9 @@ bool ControlsWidget::event(QEvent *e)
 {
     if (e->type() == QEvent::WinIdChange){
         emit winIdChanged();
+    }
+    else if (e->type() == QEvent::Resize) {
+        emit geometryChanged(geometry());
     }
     return QToolBar::event(e);
 }

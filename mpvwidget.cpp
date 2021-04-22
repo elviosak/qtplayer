@@ -81,10 +81,10 @@ void MpvWidget::setOption(QString option)
     }
 }
 
-void MpvWidget::mouseMoveEvent(QMouseEvent */*e*/)
-{
-    emit mouseMoved();
-}
+//void MpvWidget::mouseMoveEvent(QMouseEvent */*e*/)
+//{
+//    emit mouseMoved();
+//}
 
 void MpvWidget::mousePressEvent(QMouseEvent *e)
 {
@@ -102,6 +102,7 @@ void MpvWidget::mouseDoubleClickEvent(QMouseEvent *e)
     setFocus();
     if (e->button() == Qt::MouseButton::LeftButton){
         emit doubleClicked();
+        setProperty("pause", !getProperty("pause").toBool());
         e->accept();
     }
     else {
