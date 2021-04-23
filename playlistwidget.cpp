@@ -34,7 +34,7 @@ PlaylistWidget::PlaylistWidget(MpvWidget *mpv, QWidget *parent)
     _btnBar->addAction(QIcon(":/trash"), "Remove");
 
     _model = new QStandardItemModel;
-    _model->setColumnCount(3);
+    _model->setColumnCount(4);
     _model->setHorizontalHeaderLabels(QStringList()
                                       << "Title"
                                       << "Duration"
@@ -43,8 +43,9 @@ PlaylistWidget::PlaylistWidget(MpvWidget *mpv, QWidget *parent)
     _table = new QTableView;
 
     _table->setModel(_model);
-    // 0 title, 1 duration, 2 filename
+    // 0 title, 1 duration, 2 filename, 3 id
     _table->setColumnHidden(2, true);
+    _table->setColumnHidden(3, true);
     _table->setSortingEnabled(false);
     _table->setEditTriggers(QTableView::EditTrigger::NoEditTriggers);
     _table->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -126,13 +127,19 @@ PlaylistWidget::PlaylistWidget(MpvWidget *mpv, QWidget *parent)
             this, &PlaylistWidget::playlistChanged);
 
     connect(_mpv, &MpvWidget::mediaTitleChanged, this, [=] (QString title) {
-        int index = _mpv->getProperty("playlist-playing-pos").toInt();
+//        int index = _mpv->getProperty("playlist-playing-pos").toInt();
         auto filename = _mpv->getProperty("path").toString();
-        auto titleItem = _model->item(index, 0);
-        auto filenameItem = _model->item(index, 2);
-        if (titleItem && filename == filenameItem->text()){
-            titleItem->setText(title);
+//        auto titleItem = _model->item(index, 0);
+        auto items = _model->findItems(filename, Qt::MatchExactly, 2);
+        // 0 title, 1 duration, 2 filename, 3 id
+        for (auto i = items.cbegin(); i != items.cend(); ++i) {
+            auto indexTitle = (*i)->index().siblingAtColumn(0);
+            _model->itemFromIndex(indexTitle)->setText(title);
         }
+//        auto filenameItem = _model->item(index, 2);
+//        if (titleItem && filename == filenameItem->text()){
+//            titleItem->setText(title);
+//        }
     });
 
     connect(_mpv, &MpvWidget::durationChanged, this, [=] (int time) {
@@ -197,20 +204,28 @@ void PlaylistWidget::playlistChanged(QVariant playlist) {
     for (; i < list.count(); ++i) {
         auto newItem = list.at(i).value<QMap<QString, QVariant>>();
         QString filename = newItem["filename"].toString();
+        QString id = QString::number(newItem["id"].toInt());
         QList<QStandardItem*> itemRow, find;
 
-        find = _model->findItems(filename, Qt::MatchExactly, 2);
-        if (find.count() > 0){
-            itemRow = _model->takeRow(find.first()->row());
+        find = _model->findItems(id, Qt::MatchExactly, 3);
+        if (find.count() > 0) {
+            if (find.first()->index().row() == i) {
+                continue;
+            }
+            else {
+                itemRow = _model->takeRow(find.first()->row());
+            }
         }
         else {
             auto titleItem = new QStandardItem(filename);
             auto durationItem = new QStandardItem(QString());
             auto filenameItem = new QStandardItem(filename);
+            auto idItem = new QStandardItem(id);
             durationItem->setTextAlignment(Qt::AlignCenter);
             itemRow.append(titleItem);
             itemRow.append(durationItem);
             itemRow.append(filenameItem);
+            itemRow.append(idItem);
         }
         _model->insertRow(i, itemRow);
     }
