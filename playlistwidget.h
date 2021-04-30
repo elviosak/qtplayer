@@ -37,6 +37,7 @@ private:
     void playlistChanged(QVariant playlist);
 
 protected:
+
     void resizeEvent(QResizeEvent *e) override;
 signals:
     void geometryChanged(QRect geo);

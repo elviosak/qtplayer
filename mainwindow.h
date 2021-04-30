@@ -5,6 +5,7 @@
 #include <QShortcut>
 #include <QLabel>
 #include <QTimer>
+//#include <QPropertyAnimation>
 
 class MpvWidget;
 class PlaylistWidget;
@@ -23,6 +24,11 @@ private:
 
     bool _playlistAutoHide;
     bool _controlsAutoHide;
+
+//    bool _playlistHiding;
+//    bool _playlistShowing;
+//    QPropertyAnimation *_playlistAnimation;
+
     QTimer *_playlistTimer;
     QTimer *_controlsTimer;
     QRect _playlistRect;
@@ -40,6 +46,10 @@ private:
     QShortcut * _spaceShortcut;
     QShortcut * _escShortcut;
 
+    void hidePlaylist();
+    void showPlaylist();
+signals:
+    void stopAnimation();
 protected:
     void mouseMoveEvent(QMouseEvent *e) override;
     void dragEnterEvent(QDragEnterEvent *e) override;

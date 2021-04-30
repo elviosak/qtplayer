@@ -25,6 +25,9 @@ MainWindow::MainWindow(QWidget *parent)
     _playlistAutoHide = _settings->value("playlistAutoHide", true).toBool();
     _controlsAutoHide = _settings->value("controlsAutoHide", false).toBool();
 
+//    _playlistHiding = false;
+//    _playlistShowing = false;
+
     _hideDelay = _settings->value("hideDelay", 4).toInt() * 1000;
 
     setWindowIcon(QIcon(":/qtplayer"));
@@ -80,7 +83,7 @@ MainWindow::MainWindow(QWidget *parent)
         else
             _playlistTimer->stop();
 
-        _playlist->show();
+        showPlaylist();
     });
     connect(_controls, &ControlsWidget::controlsAutoHideChanged, this, [=] (bool checked) {
         _controlsAutoHide = checked;
@@ -102,7 +105,7 @@ MainWindow::MainWindow(QWidget *parent)
         if (_playlist->underMouse())
             _playlistTimer->start(_hideDelay);
         else
-            _playlist->hide();
+            hidePlaylist();
     });
     connect(_controlsTimer, &QTimer::timeout, this, [=] {
         if (_controls->underMouse())
@@ -174,15 +177,18 @@ MainWindow::MainWindow(QWidget *parent)
     if (_controlsAutoHide)
         _controlsTimer->start(_hideDelay);
 }
+void MainWindow::showPlaylist()
+{
+    // TODO: animate show Playlist
+    _playlist->show();
+}
+void MainWindow::hidePlaylist()
+{
+    // TODO: animate hide Playlist
+    _playlist->hide();
+}
 void MainWindow::resizeEvent(QResizeEvent *e)
 {
-//    if (_controlsArea == Qt::TopToolBarArea) {
-//        _controlsRect.setRight(e->size().width());
-//    }
-//    else if (_controlsArea == Qt::BottomToolBarArea) {
-//        _controlsRect.moveBottom(e->size().height());
-//        _controlsRect.setRight(e->size().width());
-//    }
 
     if (_playlistArea == Qt::DockWidgetArea::TopDockWidgetArea)
         _playlistRect.setRight(e->size().width());
@@ -196,16 +202,11 @@ void MainWindow::resizeEvent(QResizeEvent *e)
         _playlistRect.moveBottom(e->size().height());
         _playlistRect.setRight(e->size().width());
     }
+    QMainWindow::resizeEvent(e);
 }
 
 void MainWindow::mouseMoveEvent(QMouseEvent *e)
 {
-//    if (_controlsAutoHide
-//                && ((_controls->isHidden() && _controlsRect.contains(e->pos()))
-//                    || (_controls->isVisible() && _controls->underMouse()))){
-//        _controls->show();
-//        _controlsTimer->start(_hideDelay);
-//    }
     if (_controlsAutoHide && _mpv->underMouse()) {
         _controls->show();
         _controlsTimer->start(_hideDelay);
@@ -214,7 +215,8 @@ void MainWindow::mouseMoveEvent(QMouseEvent *e)
     if (_playlistAutoHide
             && ((_playlist->isHidden() && _playlistRect.contains(e->pos()))
                 || (_playlist->isVisible() && _playlist->underMouse()))){
-        _playlist->show();
+        //_playlist->show();
+        showPlaylist();
         _playlistTimer->start(_hideDelay);
     }
     if (_mpv->underMouse()){

@@ -29,6 +29,10 @@ MpvWidget::MpvWidget(QWidget *parent, Qt::WindowFlags f)
 
     //mpv_set_option_string(mpv, "terminal", "yes");
     mpv_set_option_string(mpv, "keep-open", "yes");
+
+    //for pipewire/mpv issue: https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/394
+    mpv_set_option_string(mpv, "stream-audio-silence", "yes");
+
     //mpv_set_option_string(mpv, "ytdl-format", "bestvideo[height<=?480]+bestaudio/best");
     mpv_set_option_string(mpv, "msg-level", "all=fatal");
     mpv_set_option_string(mpv, "demuxer-readahead-secs", "20");
