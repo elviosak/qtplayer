@@ -36,7 +36,7 @@ Based on https://github.com/mpv-player/mpv-examples/tree/master/libmpv/qt_opengl
 
 ### Install:
 ```
-git clone https://github.com/slidinghotdog/qtplayer.git
+git clone https://github.com/elviosak/qtplayer.git
 cd qtplayer
 mkdir -p build && cd build
 cmake .. && make && sudo make install
