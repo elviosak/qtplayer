@@ -12,6 +12,17 @@
 #include <QSharedPointer>
 #include <QMetaType>
 
+class Enum: public QObject {
+    Q_OBJECT
+public:
+    enum Visibility {
+        Visible = 0,
+        Hidden,
+        AutoHide,
+    };
+    Q_ENUM(Visibility);
+};
+
 namespace mpv {
 namespace qt {
 

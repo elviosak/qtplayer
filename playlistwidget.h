@@ -8,6 +8,7 @@
 #include <QWidget>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QString>
 #include <QToolBar>
 
 class MpvWidget;
@@ -35,6 +36,9 @@ private:
     QToolBar *_btnBar;
 
     void playlistChanged(QVariant playlist);
+
+    void addFile(QString);
+    void addDir(QString);
 
 protected:
 

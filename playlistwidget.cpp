@@ -4,9 +4,14 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include <QMimeData>
+#include <QMimeDatabase>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QDebug>
+#include <QApplication>
+#include <QClipboard>
+#include <QFileInfo>
+#include <QDir>
 
 PlaylistWidget::PlaylistWidget(MpvWidget *mpv, QWidget *parent)
     : QDockWidget(parent)
@@ -33,6 +38,8 @@ PlaylistWidget::PlaylistWidget(MpvWidget *mpv, QWidget *parent)
     _btnBar->addSeparator();
     _btnBar->addAction(QIcon(":/trash"), "Remove");
 
+    _btnBar->addSeparator();
+    _btnBar->addAction(QIcon(":/copy"), "Copy");
     _model = new QStandardItemModel;
     _model->setColumnCount(4);
     _model->setHorizontalHeaderLabels(QStringList()
@@ -120,6 +127,19 @@ PlaylistWidget::PlaylistWidget(MpvWidget *mpv, QWidget *parent)
                           << QString::number(current));
             _lastAction = "remove";
         }
+        else if (a->text() == "Copy") {
+            auto selectedRows = _table->selectionModel()->selectedRows(2);
+            qDebug() << "selected" << selectedRows.count();
+            foreach (auto item, selectedRows) {
+//                qDebug() << item.column() << item.row() << item.data().toString();
+                qApp->clipboard()->setText(item.data().toString());
+            }
+//            if (selectedRows.count() > 0) {
+//                auto fileName = _model->data(selectedRows.at(2)).value<QString>();
+//                qDebug() << "fileName" << fileName;
+//            }
+
+        }
     });
 
     // MPV LISTENERS
@@ -174,14 +194,48 @@ PlaylistWidget::PlaylistWidget(MpvWidget *mpv, QWidget *parent)
 
 void PlaylistWidget::addUrl(QString url){
     QString newUrl = url.trimmed();
+
     if (newUrl.isEmpty())
         return;
-
+    QString localFile = QUrl(url).toLocalFile();
+    QFileInfo info(localFile);
+    if (info.exists()) {
+        if (info.isFile())
+            addFile(info.absoluteFilePath());
+        else if (info.isDir())
+            addDir(info.absoluteFilePath());
+    }
+    else {
     _mpv->command(QStringList() << "loadfile" << newUrl << "append-play");
     if (_mpv->getProperty("eof-reached").toBool()
             || _mpv->getProperty("idle-active").toBool())
         _mpv->setProperty("pause", false);
+    }
 };
+
+void PlaylistWidget::addFile(QString filePath) {
+    QMimeDatabase db;
+    auto mime = db.mimeTypeForFile(filePath);
+    auto name = mime.name();
+    if (!name.startsWith(QStringLiteral("video")) && !name.startsWith(QStringLiteral("audio")))
+        return;
+    _mpv->command(QStringList() << "loadfile" << filePath << "append-play");
+    if (_mpv->getProperty("eof-reached").toBool()
+            || _mpv->getProperty("idle-active").toBool())
+        _mpv->setProperty("pause", false);
+}
+
+void PlaylistWidget::addDir(QString path) {
+    QDir dir(path);
+    auto entries = dir.entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot);
+    for (auto i = entries.cbegin(); i != entries.cend(); ++i){
+        auto info = *i;
+        if (info.isFile())
+            addFile(info.absoluteFilePath());
+        else if (info.isDir())
+            addDir(info.absoluteFilePath());
+    }
+}
 
 QString PlaylistWidget::formatTime(int time){
     int sec = time % 60;

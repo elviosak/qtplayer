@@ -1,6 +1,6 @@
 #!/bin/bash
 mkdir -p build
-rm -r build/*
+rm -rf build/*
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=/usr .. && make && make install DESTDIR=appdir
 cp ../res/qtplayer.desktop appdir/

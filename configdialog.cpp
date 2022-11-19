@@ -1,5 +1,6 @@
 #include "configdialog.h"
 #include "settings.h"
+#include "qthelper.hpp"
 
 #include <QFormLayout>
 #include <QSpinBox>
@@ -7,7 +8,9 @@
 #include <QCheckBox>
 #include <QPushButton>
 #include <QApplication>
+#include <QComboBox>
 
+#include <QDebug>
 
 ConfigDialog::ConfigDialog(QWidget *parent)
     : QDialog(parent)
@@ -30,12 +33,21 @@ ConfigDialog::ConfigDialog(QWidget *parent)
     wheelCombo->setEditable(false);
     wheelCombo->addItems(QStringList() << "Seek" << "Volume" << "None");
     wheelCombo->setCurrentText(_settings->value("wheelAction", "Seek").toString());
-//    auto fetchCheck = new QCheckBox;
-//    fetchCheck->setChecked(_settings->value("fetchInfo", false).toBool());
-    auto playlistAutoHide = new QCheckBox;
-    playlistAutoHide->setChecked(_settings->value("playlistAutoHide", true).toBool());
-    auto controlsAutoHide = new QCheckBox;
-    controlsAutoHide->setChecked(_settings->value("controlsAutoHide", false).toBool());
+    auto playlist = _settings->value("playlistVisibility", 0).toInt();
+    auto controls = _settings->value("controlsVisibility", 0).toInt();
+    qDebug() << "playlist" << playlist;
+    qDebug() << "controls" << controls;
+    auto playlistVisibility = new QComboBox;
+    playlistVisibility->addItem("Visible", Enum::Visible);
+    playlistVisibility->addItem("Hidden", Enum::Hidden);
+    playlistVisibility->addItem("Auto hide", Enum::AutoHide);
+    playlistVisibility->setCurrentIndex(playlist);
+    auto controlsVisibility = new QComboBox;
+    controlsVisibility->addItem("Visible", Enum::Visible);
+    controlsVisibility->addItem("Hidden", Enum::Hidden);
+    controlsVisibility->addItem("Auto hide", Enum::AutoHide);
+    controlsVisibility->setCurrentIndex(controls);
+
     auto hideDelaySpin = new QSpinBox;
     hideDelaySpin->setValue(_settings->value("hideDelay", 4).toInt());
     hideDelaySpin->setRange(1, 20);
@@ -45,8 +57,8 @@ ConfigDialog::ConfigDialog(QWidget *parent)
     form->addRow("Seek Step", seekSpin);
     form->addRow("Volume Step", volumeSpin);
     form->addRow("Wheel Action", wheelCombo);
-    form->addRow("Auto hide Playlist", playlistAutoHide);
-    form->addRow("Auto hide Controls", controlsAutoHide);
+    form->addRow("Playlist Visibility", playlistVisibility);
+    form->addRow("Controls Visibility", controlsVisibility);
     form->addRow("Hide delay", hideDelaySpin);
 //    form->addRow("Fetch Info", fetchCheck);
 
@@ -68,11 +80,15 @@ ConfigDialog::ConfigDialog(QWidget *parent)
     connect(wheelCombo, &QComboBox::currentTextChanged, this, [=] (QString text) {
         emit settingChanged("wheelAction", text);
     });
-    connect(playlistAutoHide, &QCheckBox::toggled, this, [=] (bool checked) {
-        emit settingChanged("playlistAutoHide", checked);
+    connect(playlistVisibility, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [=] (int index) {
+        if (index == -1)
+            return;
+        emit settingChanged("playlistVisibility", playlistVisibility->currentData());
     });
-    connect(controlsAutoHide, &QCheckBox::toggled, this, [=] (bool checked) {
-        emit settingChanged("controlsAutoHide", checked);
+    connect(controlsVisibility, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [=] (int index){
+        if (index == -1)
+            return;
+        emit settingChanged("controlsVisibility", controlsVisibility->currentData());
     });
     connect(hideDelaySpin, QOverload<int>::of(&QSpinBox::valueChanged), this, [=] (int value) {
         emit settingChanged("hideDelay", value);

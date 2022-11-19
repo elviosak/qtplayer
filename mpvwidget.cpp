@@ -1,8 +1,13 @@
 #include "mpvwidget.h"
+#include "settings.h"
 #include <stdexcept>
 #include <QOpenGLContext>
 #include <QMetaObject>
 #include <QMouseEvent>
+#include <QMenu>
+#include <QAction>
+#include <QActionGroup>
+#include <QRadioButton>
 
 #include <QDebug>
 
@@ -20,7 +25,9 @@ static void *get_proc_address(void *ctx, const char *name) {
 }
 MpvWidget::MpvWidget(QWidget *parent, Qt::WindowFlags f)
     : QOpenGLWidget(parent, f)
+    , _settings(Settings::instance())
 {
+    setLocale(QLocale::c());
     QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setMouseTracking(true);
     mpv = mpv_create();
@@ -33,10 +40,14 @@ MpvWidget::MpvWidget(QWidget *parent, Qt::WindowFlags f)
     //for pipewire/mpv issue: https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/394
     mpv_set_option_string(mpv, "stream-audio-silence", "yes");
 
+    // default youtube-dl options
+    //mpv_set_option_string(mpv, "ytdl-raw-options", "sponsorblock-remove=all");
+    mpv_set_option_string(mpv, "ytdl-raw-options", "write-auto-sub=");
     //mpv_set_option_string(mpv, "ytdl-format", "bestvideo[height<=?480]+bestaudio/best");
     mpv_set_option_string(mpv, "msg-level", "all=fatal");
     mpv_set_option_string(mpv, "demuxer-readahead-secs", "20");
-
+    mpv_set_option_string(mpv, "sub-color", "#DDFFFF00");
+    mpv_set_option_string(mpv, "sub-font-size", "42");
     if (mpv_initialize(mpv) < 0)
         throw std::runtime_error("could not initialize mpv context");
 
@@ -55,6 +66,8 @@ MpvWidget::MpvWidget(QWidget *parent, Qt::WindowFlags f)
     mpv_observe_property(mpv, 0, "demuxer-cache-state", MPV_FORMAT_NODE);
 
     mpv_set_wakeup_callback(mpv, wakeup, this);
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this, &MpvWidget::customContextMenuRequested, this, &MpvWidget::showConfigMenu);
 }
 
 MpvWidget::~MpvWidget()
@@ -97,9 +110,90 @@ void MpvWidget::mousePressEvent(QMouseEvent *e)
         setProperty("pause", !getProperty("pause").toBool());
         QWidget::mousePressEvent(e);
     }
+//    else if (e->button() == Qt::MouseButton::RightButton) {
+//        showConfigMenu(e->globalPos());
+//    }
     else {
         QWidget::mousePressEvent(e);
     }
+}
+
+void MpvWidget::showConfigMenu(QPoint p) {
+    QMenu m;
+    auto playlistVisibility = _settings->value("playlistVisibility", Enum::Visible).value<Enum::Visibility>();
+    auto controlsVisibility = _settings->value("controlsVisibility", Enum::Visible).value<Enum::Visibility>();
+    m.addSection("Playlist");
+    auto playlistGroup = new QActionGroup(&m);
+    playlistGroup->setExclusionPolicy(QActionGroup::ExclusionPolicy::Exclusive);
+    auto controlsGroup = new QActionGroup(&m);
+    controlsGroup->setExclusionPolicy(QActionGroup::ExclusionPolicy::Exclusive);
+    QAction *a;
+    a = playlistGroup->addAction("Visible");
+    m.addAction(a);
+    a->setCheckable(true);
+    if (playlistVisibility == Enum::Visible)
+        a->setChecked(true);
+    connect(a, &QAction::toggled, this, [=] (bool checked) {
+       if (checked) {
+           emit playlistVisibilityChanged(Enum::Visible);
+       }
+    });
+    a = playlistGroup->addAction("Hidden");
+    m.addAction(a);
+    a->setCheckable(true);
+    if (playlistVisibility == Enum::Hidden)
+        a->setChecked(true);
+    connect(a, &QAction::toggled, this, [=] (bool checked) {
+       if (checked) {
+           emit playlistVisibilityChanged(Enum::Hidden);
+       }
+    });
+
+    a = playlistGroup->addAction("Auto hide");
+    m.addAction(a);
+    a->setCheckable(true);
+    if (playlistVisibility == Enum::AutoHide)
+        a->setChecked(true);
+    connect(a, &QAction::toggled, this, [=] (bool checked) {
+       if (checked) {
+           emit playlistVisibilityChanged(Enum::AutoHide);
+       }
+    });
+
+    m.addSection("Controls");
+    a = controlsGroup->addAction("Visible");
+    m.addAction(a);
+    a->setCheckable(true);
+    if (controlsVisibility == Enum::Visible)
+        a->setChecked(true);
+    connect(a, &QAction::toggled, this, [=] (bool checked) {
+       if (checked) {
+           emit controlsVisibilityChanged(Enum::Visible);
+       }
+    });
+
+    a = controlsGroup->addAction("Hidden");
+    m.addAction(a);
+    a->setCheckable(true);
+    if (controlsVisibility == Enum::Hidden)
+        a->setChecked(true);
+    connect(a, &QAction::toggled, this, [=] (bool checked) {
+       if (checked) {
+           emit controlsVisibilityChanged(Enum::Hidden);
+       }
+    });
+
+    a = controlsGroup->addAction("Auto hide");
+    m.addAction(a);
+    a->setCheckable(true);
+    if (controlsVisibility == Enum::AutoHide)
+        a->setChecked(true);
+    connect(a, &QAction::toggled, this, [=] (bool checked) {
+       if (checked) {
+           emit controlsVisibilityChanged(Enum::AutoHide);
+       }
+    });
+    m.exec(mapToGlobal(p));
 }
 void MpvWidget::mouseDoubleClickEvent(QMouseEvent *e)
 {
@@ -180,7 +274,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
     else if (strcmp(prop->name, "media-title") == 0) {
         if (prop->format == MPV_FORMAT_STRING) {
             char* title = *(char **)prop->data;
-            emit mediaTitleChanged(QLatin1String(title));
+            emit mediaTitleChanged(QString::fromUtf8(title));
         }
     }
     else if (strcmp(prop->name, "eof-reached") == 0) {
@@ -218,7 +312,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
 
 void MpvWidget::initializeGL()
 {
-    mpv_opengl_init_params gl_init_params{get_proc_address, nullptr, nullptr};
+    mpv_opengl_init_params gl_init_params{get_proc_address, nullptr};
     mpv_render_param params[]{
         {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)},
         {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init_params},

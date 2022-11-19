@@ -220,17 +220,17 @@ void ControlsWidget::settingChanged(QString key, QVariant val){
         _wheelAction = val.toString();
         _settings->setValue("wheelAction", val);
     }
-//    else if (key == "fetchInfo") {
-//        _fetchInfo = val.toBool();
-//        _settings->setValue("fetchInfo", val);
-//    }
-    else if (key == "playlistAutoHide") {
-        _settings->setValue("playlistAutoHide", val.toBool());
-        emit playlistAutoHideChanged(val.toBool());
+
+
+    else if (key == "playlistVisibility") {
+        //settings handled in mainwindow
+        //_settings->setValue("playlistVisibility", val.value<Enum::Visibility>());
+        emit playlistVisibilityChanged(val.value<Enum::Visibility>());
     }
-    else if (key == "controlsAutoHide") {
-        _settings->setValue("controlsAutoHide", val.toBool());
-        emit controlsAutoHideChanged(val.toBool());
+    else if (key == "controlsVisibility") {
+        //settings handled in mainwindow
+        //_settings->setValue("controlsVisibility", val.value<Enum::Visibility>());
+        emit controlsVisibilityChanged(val.value<Enum::Visibility>());
     }
     else if (key == "hideDelay") {
         _settings->setValue("hideDelay", val.toInt());

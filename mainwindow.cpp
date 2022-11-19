@@ -17,13 +17,17 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , _settings(Settings::instance())
 {
+    QLocale br(QLocale::Portuguese, QLocale::Brazil);
+    setLocale(br);
     setAcceptDrops(true);
     setMouseTracking(true);
     _playlistArea = _settings->value("playlistArea", Qt::DockWidgetArea::TopDockWidgetArea).value<Qt::DockWidgetArea>();
     _controlsArea = _settings->value("controlsArea", Qt::ToolBarArea::BottomToolBarArea).value<Qt::ToolBarArea>();
 
-    _playlistAutoHide = _settings->value("playlistAutoHide", true).toBool();
-    _controlsAutoHide = _settings->value("controlsAutoHide", false).toBool();
+    _playlistVisibility = _settings->value("playlistVisibility", Enum::Visible).value<Enum::Visibility>();
+    _controlsVisibility = _settings->value("controlsVisibility", Enum::Visible).value<Enum::Visibility>();
+//    _playlistAutoHide = _settings->value("playlistAutoHide", true).toBool();
+//    _controlsAutoHide = _settings->value("controlsAutoHide", false).toBool();
 
 //    _playlistHiding = false;
 //    _playlistShowing = false;
@@ -75,25 +79,48 @@ MainWindow::MainWindow(QWidget *parent)
     _mpv->setFocus();
     resize(800, 640);
 
+    connect(_mpv, &MpvWidget::playlistVisibilityChanged, this, &MainWindow::setPlaylistVisibility);
+    connect(_mpv, &MpvWidget::controlsVisibilityChanged, this, &MainWindow::setControlsVisibility);
+    connect(_controls, &ControlsWidget::playlistVisibilityChanged, this, &MainWindow::setPlaylistVisibility);
+    connect(_controls, &ControlsWidget::controlsVisibilityChanged, this, &MainWindow::setControlsVisibility);
 
-    connect(_controls, &ControlsWidget::playlistAutoHideChanged, this, [=] (bool checked) {
-        _playlistAutoHide = checked;
-        if (checked)
-            _playlistTimer->start(_hideDelay);
-        else
-            _playlistTimer->stop();
+//    connect(_mpv, &MpvWidget::playlistAutoHideChanged, this, [=] (int ) {
+//        _playlistAutoHide = checked;
+//        if (checked)
+//            _playlistTimer->start(_hideDelay);
+//        else
+//            _playlistTimer->stop();
 
-        showPlaylist();
-    });
-    connect(_controls, &ControlsWidget::controlsAutoHideChanged, this, [=] (bool checked) {
-        _controlsAutoHide = checked;
-        if (checked)
-            _controlsTimer->start(_hideDelay);
-        else
-            _controlsTimer->stop();
+//        showPlaylist();
+//    });
+//    connect(_mpv, &MpvWidget::controlsAutoHideChanged, this, [=] (bool checked) {
+//        _controlsAutoHide = checked;
+//        if (checked)
+//            _controlsTimer->start(_hideDelay);
+//        else
+//            _controlsTimer->stop();
 
-        _controls->show();
-    });
+//        _controls->show();
+//    });
+
+//    connect(_controls, &ControlsWidget::playlistAutoHideChanged, this, [=] (bool checked) {
+//        _playlistAutoHide = checked;
+//        if (checked)
+//            _playlistTimer->start(_hideDelay);
+//        else
+//            _playlistTimer->stop();
+
+//        showPlaylist();
+//    });
+//    connect(_controls, &ControlsWidget::controlsAutoHideChanged, this, [=] (bool checked) {
+//        _controlsAutoHide = checked;
+//        if (checked)
+//            _controlsTimer->start(_hideDelay);
+//        else
+//            _controlsTimer->stop();
+
+//        _controls->show();
+//    });
     connect(_controls, &ControlsWidget::hideDelayChanged, this, [=] (int timeSec) {
         _hideDelay = timeSec * 1000;
     });
@@ -172,10 +199,48 @@ MainWindow::MainWindow(QWidget *parent)
     //_controlsRect = _controls->geometry();
 
 
-    if (_playlistAutoHide)
+    if (_playlistVisibility == Enum::AutoHide)
         _playlistTimer->start(_hideDelay);
-    if (_controlsAutoHide)
+    if (_controlsVisibility == Enum::AutoHide)
         _controlsTimer->start(_hideDelay);
+}
+void MainWindow::setPlaylistVisibility(Enum::Visibility v) {
+    _playlistVisibility = v;
+    _settings->setValue("playlistVisibility", v);
+    _playlistTimer->stop();
+    switch (v) {
+    case Enum::Visible:
+        showPlaylist();
+        break;
+    case Enum::Hidden:
+        hidePlaylist();
+        break;
+    case Enum::AutoHide:
+        _playlistTimer->start(_hideDelay);
+        showPlaylist();
+        break;
+    default:
+        break;
+    }
+}
+void MainWindow::setControlsVisibility(Enum::Visibility v) {
+    _controlsVisibility = v;
+    _settings->setValue("controlsVisibility", v);
+    _controlsTimer->stop();
+    switch (v) {
+    case Enum::Visible:
+        _controls->show();
+        break;
+    case Enum::Hidden:
+        _controls->hide();
+        break;
+    case Enum::AutoHide:
+        _controlsTimer->start(_hideDelay);
+        _controls->show();
+        break;
+    default:
+        break;
+    }
 }
 void MainWindow::showPlaylist()
 {
@@ -207,15 +272,14 @@ void MainWindow::resizeEvent(QResizeEvent *e)
 
 void MainWindow::mouseMoveEvent(QMouseEvent *e)
 {
-    if (_controlsAutoHide && _mpv->underMouse()) {
+    if ((_controlsVisibility == Enum::AutoHide) && _mpv->underMouse()) {
         _controls->show();
         _controlsTimer->start(_hideDelay);
     }
 
-    if (_playlistAutoHide
+    if ((_playlistVisibility == Enum::AutoHide)
             && ((_playlist->isHidden() && _playlistRect.contains(e->pos()))
                 || (_playlist->isVisible() && _playlist->underMouse()))){
-        //_playlist->show();
         showPlaylist();
         _playlistTimer->start(_hideDelay);
     }

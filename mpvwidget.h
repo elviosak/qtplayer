@@ -6,6 +6,9 @@
 #include <mpv/render_gl.h>
 #include "qthelper.hpp"
 
+
+class Settings;
+
 class MpvWidget Q_DECL_FINAL: public QOpenGLWidget
 {
     Q_OBJECT
@@ -34,6 +37,9 @@ signals:
     void clicked();
     void doubleClicked();
     void valueStep(bool increase);
+
+    void playlistVisibilityChanged(Enum::Visibility);
+    void controlsVisibilityChanged(Enum::Visibility);
 //    void mouseMoved();
 
 protected:
@@ -51,8 +57,10 @@ private:
     void handle_mpv_event(mpv_event *event);
     static void on_update(void *ctx);
 
+    void showConfigMenu(QPoint p);
     mpv_handle *mpv;
     mpv_render_context *mpv_gl;
+    Settings *_settings;
 };
 
 #endif // MPVWIDGET_H

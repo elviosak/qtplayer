@@ -5,12 +5,15 @@
 #include <QShortcut>
 #include <QLabel>
 #include <QTimer>
+#include "qthelper.hpp"
 //#include <QPropertyAnimation>
 
 class MpvWidget;
 class PlaylistWidget;
 class ControlsWidget;
 class Settings;
+
+
 
 class MainWindow : public QMainWindow
 {
@@ -19,11 +22,14 @@ public:
     explicit MainWindow(QWidget *parent = 0);
 
 private:
+
     Qt::DockWidgetArea _playlistArea;
     Qt::ToolBarArea _controlsArea;
 
-    bool _playlistAutoHide;
-    bool _controlsAutoHide;
+//    bool _playlistAutoHide;
+//    bool _controlsAutoHide;
+    Enum::Visibility _playlistVisibility;
+    Enum::Visibility _controlsVisibility;
 
 //    bool _playlistHiding;
 //    bool _playlistShowing;
@@ -48,6 +54,9 @@ private:
 
     void hidePlaylist();
     void showPlaylist();
+    void setPlaylistVisibility(Enum::Visibility);
+    void setControlsVisibility(Enum::Visibility);
+
 signals:
     void stopAnimation();
 protected:

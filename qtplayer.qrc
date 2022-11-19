@@ -15,5 +15,6 @@
         <file alias="up">res/up.svg</file>
         <file alias="addplaylist">res/addplaylist.svg</file>
         <file alias="settings">res/settings.svg</file>
+        <file alias="copy">res/copy.svg</file>
     </qresource>
 </RCC>

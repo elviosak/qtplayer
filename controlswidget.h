@@ -8,6 +8,8 @@
 #include <QComboBox>
 #include <QIcon>
 
+#include "qthelper.hpp"
+
 class MpvWidget;
 class SeekBar;
 class VolumeBar;
@@ -60,8 +62,8 @@ protected:
 signals:
     void toggleFullScreen();
     void winIdChanged();
-    void playlistAutoHideChanged(bool checked);
-    void controlsAutoHideChanged(bool checked);
+    void playlistVisibilityChanged(Enum::Visibility);
+    void controlsVisibilityChanged(Enum::Visibility);
     void hideDelayChanged(int timeSec);
     void geometryChanged(QRect geo);
 };
